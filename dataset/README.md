@@ -57,16 +57,42 @@ The requirements below are the dataset goals distilled from
 
 ## Layout
 
-Planned (files appear as Phase 1 progresses):
-
 ```
 dataset/
 ├── README.md          # this file — dataset goals and contract
-├── ingest.py          # MediaWiki API ingestion script (committed before first run)
-├── config.json        # pinned category list and normalization settings
-├── corpus/            # build output: normalized recipe records
-└── raw/               # raw API responses (git-ignored build artifact)
+├── PLAN.md            # implementation plan + traceability matrix
+├── config.json        # pinned category list and quotas (config, not code)
+├── ingest.py          # CLI: build | rebuild | validate | analyze | verify
+├── mw_api.py          # MediaWiki API client (the only I/O module)
+├── parsing.py         # pure wikitext parsing
+├── select.py          # deterministic candidate selection
+├── validate.py        # corpus contract checks
+├── fixtures/          # committed real API responses for tests
+├── tests/             # pytest suite (network-free by default)
+└── corpus/            # committed build output
+    ├── recipes/*.json # normalized recipe records (one per pageid)
+    ├── index.json     # corpus_version, count, category counts
+    ├── manifest.json  # pageid -> revid pinning exact revisions
+    └── eda_report.json# EDA: selection-signal decision
 ```
+
+## How to build
+
+From a clean checkout:
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m dataset.ingest build      # full pipeline (hits the API)
+.venv/bin/python -m dataset.ingest validate   # contract-check the corpus
+.venv/bin/python -m dataset.ingest analyze    # regenerate the EDA report
+.venv/bin/python -m dataset.ingest rebuild    # rebuild from pinned revisions
+.venv/bin/python -m dataset.ingest verify     # diff a fresh rebuild vs committed
+.venv/bin/python -m pytest dataset/tests      # network-free test suite
+```
+
+The committed `corpus/` is already valid: `validate` and the test suite pass
+without network access. `rebuild` fetches exactly the manifest revisions, so
+any machine reproduces the same corpus.
 
 ## Non-goals
 

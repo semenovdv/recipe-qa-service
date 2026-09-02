@@ -205,6 +205,13 @@ Python 3.11+.
 
 ## 13. Traceability — coverage of 00_TASK, 01_PLAN, 02_CHECKLIST
 
+**Implementation status (updated after the first build):** all steps of §11 are
+complete. The corpus is built, committed and validated: 49 records, corpus
+version `45af1c982923952a`, EDA verdict `stable_id_baseline`. Ukrainian recipes
+yielded only 3 pages live, so its quota was lowered to 3 and soups/desserts
+raised to 9 (config_version stays 1; the change is recorded here and in the
+commit history).
+
 The plan is checked against every requirement in the source documents that
 could plausibly apply to the dataset stage. Items outside the dataset's scope
 are explicitly marked N/A (they belong to later phases and must not be silently
