@@ -1,0 +1,17 @@
+{
+  "config_version": 1,
+  "api_url": "https://en.wikibooks.org/w/api.php",
+  "target_count": 50,
+  "corpus_floor": 40,
+  "corpus_ceiling": 60,
+  "categories": [
+    {"category": "Vegetarian recipes", "quota": 8, "axis": "diet"},
+    {"category": "Indian recipes", "quota": 6, "axis": "cuisine"},
+    {"category": "Italian recipes", "quota": 6, "axis": "cuisine"},
+    {"category": "Japanese recipes", "quota": 5, "axis": "cuisine"},
+    {"category": "Mexican recipes", "quota": 5, "axis": "cuisine"},
+    {"category": "Ukrainian recipes", "quota": 4, "axis": "cuisine"},
+    {"category": "Soup recipes", "quota": 8, "axis": "type"},
+    {"category": "Recipes for dessert", "quota": 8, "axis": "type"}
+  ]
+}
