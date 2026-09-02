@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipe Q&amp;A Service — Dataset &amp; EDA Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1420; --panel: #171e2e; --panel2: #1d2740; --border: #2a3752;
+    --text: #e8edf7; --muted: #93a1bd; --accent: #5b9dff; --good: #37c978;
+    --warn: #f2b632; --bad: #ef5b6e; --violet: #a78bfa; --cyan: #46d3e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.55; padding-bottom: 80px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 48px 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  h1 .accent { color: var(--accent); }
+  .sub { color: var(--muted); margin-top: 8px; font-size: 14px; }
+  .badges { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .badge { background: var(--panel2); border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 13px; color: var(--muted); }
+  .badge b { color: var(--text); }
+  h2 { font-size: 20px; margin: 44px 0 6px; letter-spacing: -0.01em; }
+  h2 .num { color: var(--accent); font-weight: 600; margin-right: 8px; }
+  .desc { color: var(--muted); font-size: 14px; margin-bottom: 18px; max-width: 900px; }
+  .grid { display: grid; gap: 18px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .card h3 { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .chart-box { position: relative; height: 320px; }
+  .chart-box.tall { height: 420px; }
+  .chart-box.short { height: 260px; }
+  .kpi { display: flex; flex-direction: column; gap: 6px; }
+  .kpi .v { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
+  .kpi .l { color: var(--muted); font-size: 13px; }
+  .kpi .d { font-size: 12.5px; color: var(--muted); }
+  .kpi .d b { color: var(--text); }
+  .ok { color: var(--good); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(55, 201, 120, 0.14); color: var(--good); }
+  .pill.info { background: rgba(91, 157, 255, 0.14); color: var(--accent); }
+  .pill.fix { background: rgba(242, 182, 50, 0.14); color: var(--warn); }
+  .verdict { border-left: 3px solid var(--violet); background: var(--panel2); border-radius: 0 12px 12px 0; padding: 16px 18px; margin-top: 14px; font-size: 14px; }
+  .verdict b { color: var(--violet); }
+  .code { font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; background: #0b0f18; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--cyan); overflow-x: auto; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+  footer { margin-top: 60px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Dataset &amp; EDA Report <span class="accent">· Recipe Q&amp;A Service</span></h1>
+    <div class="sub">Wikibooks Cookbook corpus · built 2026-09-02 · corpus version <b style="color:var(--cyan)">45af1c982923952a</b> · all data via the live MediaWiki API</div>
+    <div class="badges">
+      <span class="badge"><b>49</b> recipes</span>
+      <span class="badge"><b>8</b> selection categories</span>
+      <span class="badge"><b>15</b> cuisine tags</span>
+      <span class="badge"><b>44</b> tests passing</span>
+      <span class="badge"><b>100%</b> contract checks</span>
+      <span class="badge">spec <b>§8.1 / §4.2 / §4.6</b> compliant</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ KPI ROW ============ -->
+  <div class="grid g4">
+    <div class="card kpi">
+      <span class="v ok">49</span>
+      <span class="l">Unique recipes</span>
+      <span class="d">Inside the mandated <b>40–60</b> window (CORP-03), zero duplicates</span>
+    </div>
+    <div class="card kpi">
+      <span class="v">15</span>
+      <span class="l">Distinct cuisines</span>
+      <span class="d">From 3 axes: <b>diet / cuisine / dish-type</b> (CORP-05/06)</span>
+    </div>
+    <div class="card kpi">
+      <span class="v">47%</span>
+      <span class="l">Time-metadata coverage</span>
+      <span class="d">23/49 explicit totals; the rest honestly <b>null</b> — never guessed (spec §4.6)</span>
+    </div>
+    <div class="card kpi">
+      <span class="v" style="color:var(--violet)">stable-ID</span>
+      <span class="l">EDA selection verdict</span>
+      <span class="d">No usable ranking signal → <b>lowest-recipe-ID baseline</b> stays (spec §4.2)</span>
+    </div>
+  </div>
+
+  <!-- ============ 1. EDA ============ -->
+  <h2><span class="num">01</span>Exploratory Data Analysis</h2>
+  <p class="desc">The spec requires an EDA before fixing the recipe-selection policy: if the corpus offers a reliable,
+  comparable signal (popularity, views, likes), it may replace the lowest-stable-ID baseline. The EDA measured every
+  candidate signal's coverage and distinct-value spread across all 49 records.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Metadata coverage per field (usable-signal candidates)</h3>
+      <div class="chart-box"><canvas id="chCoverage"></canvas></div>
+      <p class="note">A signal is usable only at ≥ 80% coverage and ≥ 2 distinct values. Rating (2%) and time (47%) both fail decisively.</p>
+    </div>
+    <div class="card">
+      <h3>Total-time distribution (minutes, n=23)</h3>
+      <div class="chart-box"><canvas id="chTime"></canvas></div>
+      <p class="note">Good spread across quick and slow dishes — time-constraint questions have real support. 27/49 unknowns are excluded from hard matches, never filled in.</p>
+    </div>
+    <div class="card">
+      <h3>Servings coverage</h3>
+      <div class="chart-box short"><canvas id="chServings"></canvas></div>
+      <p class="note">59% of records declare servings — useful for yield questions, not a ranking signal.</p>
+    </div>
+    <div class="card">
+      <h3>EDA decision</h3>
+      <div class="verdict">
+        <b>Verdict: <code>stable_id_baseline</code></b><br><br>
+        Rating coverage <b>0.02</b> (1 record, 1 distinct value) and time coverage <b>0.47</b> both fail the
+        ≥ 0.8 / ≥ 2 criteria. No reliable, comparable signal exists in this corpus, therefore the
+        <b>lowest stable recipe ID</b> remains the deterministic selection strategy after relevance and
+        hard-constraint filtering.<br><br>
+        Any future switch must be versioned, documented in ADR-001 and covered by deterministic tests —
+        exactly as spec §4.2 and RET-08 require.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. REQUIREMENTS COMPLIANCE ============ -->
+  <h2><span class="num">02</span>Compliance with the Assignment</h2>
+  <p class="desc">Every dataset requirement from the task, spec §8.1 and checklist items CORP-01…11, mapped to measured evidence.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Checklist items passed vs total</h3>
+      <div class="chart-box short"><canvas id="chChecklist"></canvas></div>
+      <p class="note">All 11 CORP items pass; CON-01/02/03 are supported for the retrieval phase; AC-01/AC-02 verified.</p>
+    </div>
+    <div class="card">
+      <h3>Per-category coverage vs pinned quota</h3>
+      <div class="chart-box"><canvas id="chQuota"></canvas></div>
+      <p class="note">Bars show corpus records; dashed line = pinned quota. Ukrainian has only 3 pages live on Wikibooks — quota was adjusted to reality, documented in PLAN §13.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Full requirement trace</h3>
+    <table>
+      <tr><th>ID</th><th>Requirement</th><th>Status</th><th>Evidence</th></tr>
+      <tr><td>CORP-01/02</td><td>Wikibooks Cookbook via MediaWiki API</td><td><span class="pill pass">PASS</span></td><td>All records fetched from <code>w/api.php</code>; no scraping, no hand-made lists</td></tr>
+      <tr><td>CORP-03</td><td>40–60 unique recipes</td><td><span class="pill pass">PASS</span></td><td>49 unique pageids/titles; enforced by validator + tests, build fails outside the window</td></tr>
+      <tr><td>CORP-04</td><td>Several categories</td><td><span class="pill pass">PASS</span></td><td>8 pinned categories, all contributing</td></tr>
+      <tr><td>CORP-05</td><td>Variety</td><td><span class="pill pass">PASS</span></td><td>Diet/cuisine/type axes; automated variety assertions in <code>test_corpus.py</code></td></tr>
+      <tr><td>CORP-06</td><td>Different cuisines</td><td><span class="pill pass">PASS</span></td><td>15 cuisine tags — Indian, Italian, Japanese, Mexican, Ukrainian, Algerian, Thai, Turkish, Bulgarian, Bengali, Albanian, Igbo, Rwandan…</td></tr>
+      <tr><td>CORP-07</td><td>Overlapping dishes</td><td><span class="pill pass">PASS</span></td><td>2 variant groups: Marinara I/II, Baingan Bartha I/II</td></tr>
+      <tr><td>CORP-08</td><td>Different structure levels</td><td><span class="pill pass">PASS</span></td><td>Source text 952–10,766 chars; 23/49 with time, 29/49 with servings, rest honest nulls</td></tr>
+      <tr><td>CORP-09/10/11</td><td>Script committed; rebuildable; reproducible</td><td><span class="pill pass">PASS</span></td><td><code>rebuild</code> pins exact manifest revisions → same corpus version; <code>verify</code> diffs fresh vs committed</td></tr>
+      <tr><td>CON-01</td><td>Time constraints supported</td><td><span class="pill pass">PASS</span></td><td>The task's own example question has 4 answers: Tea 15', Alfredo 15', Zucchini 18', Tomato Gravy 20'</td></tr>
+      <tr><td>CON-02</td><td>Diet constraints supported</td><td><span class="pill pass">PASS</span></td><td>14 vegetarian-tagged records</td></tr>
+      <tr><td>CON-03</td><td>Ingredient constraints supported</td><td><span class="pill pass">PASS</span></td><td>Normalized ingredient lists + raw lines retained; zero markup leaks in audit</td></tr>
+      <tr><td>AC-01/AC-02</td><td>Reproducible ingestion; canonical URLs</td><td><span class="pill pass">PASS</span></td><td>Clean-checkout rebuild verified; 49/49 canonical URLs</td></tr>
+      <tr><td>SPEC §4.6</td><td>Ambiguous time never guessed</td><td><span class="pill pass">PASS</span></td><td>Ranges ("1–2 hours"), unit-less ("45"), multi-phase ("30 min + 24 h") → null, tested</td></tr>
+      <tr><td>SPEC-02 / TEST-07 / AC-17</td><td>Spec &amp; tests before implementation</td><td><span class="pill pass">PASS</span></td><td>Commit order: docs → failing tests → implementation (git history)</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ 3. PROJECT-USABLE DETAILS ============ -->
+  <h2><span class="num">03</span>What the Corpus Gives the Project</h2>
+  <p class="desc">Concrete, measured properties the retrieval / grounding / eval phases can build on.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Selection-category distribution</h3>
+      <div class="chart-box"><canvas id="chCategories"></canvas></div>
+      <p class="note">Vegetarian and desserts dominate — the two categories that drive diet-constraint and discovery eval cases.</p>
+    </div>
+    <div class="card">
+      <h3>Most common normalized ingredients</h3>
+      <div class="chart-box"><canvas id="chIngredients"></canvas></div>
+      <p class="note">Ingredient lookups and required/excluded-ingredient filters have dense support: salt appears in 17/49 recipes, water in 8, sugar in 7+2 variants. The synonym map for filters will be built on this frequency data.</p>
+    </div>
+    <div class="card">
+      <h3>Vegetarian answers ready for the demo question</h3>
+      <div class="chart-box short"><canvas id="chVeg"></canvas></div>
+      <p class="note">"What's a vegetarian dinner I can make in under 30 minutes?" — the assignment's own example — has 4 grounded answers in this corpus.</p>
+    </div>
+    <div class="card">
+      <h3>Recipe complexity spread</h3>
+      <div class="chart-box short"><canvas id="chComplexity"></canvas></div>
+      <p class="note">Ingredients per recipe: min 2 / median 9 / max 41. Steps: min 1 / median 7 / max 31. The spread exercises chunking and grounding at both extremes.</p>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <h3>Overlapping dish groups (for conflict &amp; selection policies)</h3>
+      <table>
+        <tr><th>Group</th><th>Pages</th><th>Why it matters</th></tr>
+        <tr>
+          <td><code>american marinara sauce</code></td>
+          <td>Cookbook:American Marinara Sauce I<br>Cookbook:American Marinara Sauce II</td>
+          <td>Same dish, different methods/times → spec §4.2 single-recipe selection + §9 conflict handling are exercisable</td>
+        </tr>
+        <tr>
+          <td><code>baingan bartha</code></td>
+          <td>Cookbook:Baingan Bartha … I<br>Cookbook:Baingan Bartha … II</td>
+          <td>Two South-Indian eggplant variants with different ingredient lists → comparison questions &amp; citation attribution</td>
+        </tr>
+      </table>
+      <p class="note">Also present in the wider corpus: soups with regional twins (Kapusniak vs Tarator vs Chorba) — natural “dishes that overlap” material per the assignment.</p>
+    </div>
+    <div class="card">
+      <h3>Reproducibility guarantees</h3>
+      <table>
+        <tr><th>Mechanism</th><th>Guarantee</th></tr>
+        <tr><td><code>manifest.json</code></td><td>pageid → exact revision ID; rebuilds never drift with upstream wiki edits</td></tr>
+        <tr><td><code>index.json</code></td><td><code>corpus_version</code> content-hash reported later by <code>/health</code> (spec assumption 2)</td></tr>
+        <tr><td><code>verify</code> mode</td><td>In-memory rebuild diffs against the committed corpus — CI-able drift alarm</td></tr>
+        <tr><td><code>config.json</code></td><td>Categories/quotas are versioned config, not hidden code (spec §8.1)</td></tr>
+      </table>
+      <div class="code" style="margin-top:12px">python -m dataset.ingest verify
+# → verified: 49 records match a fresh rebuild</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Audit trail — issues found and their resolution</h3>
+    <table>
+      <tr><th>Finding</th><th>Severity</th><th>Resolution</th></tr>
+      <tr><td>“30 minutes + 24 hours” (Marinara I) parsed as 1470 min — a false citable fact</td><td><span class="pill fix">HIGH</span></td><td>Multi-phase totals now ambiguous → <code>null</code> per spec §4.6; regression test added; corpus rebuilt from pinned revisions</td></tr>
+      <tr><td>Ukrainian category holds only 3 pages live vs quota 4</td><td><span class="pill info">LOW</span></td><td>Quota adjusted 4→3, soups/desserts 8→9; target 50 held; recorded in PLAN §13</td></tr>
+      <tr><td>Afghan Bread dropped at the structure gate (no ingredient section)</td><td><span class="pill info">INFO</span></td><td>Expected gate behavior; kept corpus in bounds at 49</td></tr>
+      <tr><td>Affogato has a single step</td><td><span class="pill info">INFO</span></td><td>Genuine page content; deliberately kept for structure variety (CORP-08)</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    Recipe Q&amp;A Service · dataset stage report · data: Wikibooks Cookbook (CC BY-SA) via MediaWiki API ·
+    charts render client-side with Chart.js · full compliance matrix in <code>report.md</code>, plan &amp; traceability in <code>dataset/PLAN.md</code>
+  </footer>
+</div>
+
+<script>
+const C = {
+  text: '#e8edf7', muted: '#93a1bd', grid: 'rgba(42,55,82,.6)',
+  accent: '#5b9dff', good: '#37c978', warn: '#f2b632', bad: '#ef5b6e',
+  violet: '#a78bfa', cyan: '#46d3e0', palette: ['#5b9dff','#37c978','#f2b632','#a78bfa','#46d3e0','#ef5b6e','#8fd694','#d4a5ff']
+};
+Chart.defaults.color = C.muted;
+Chart.defaults.borderColor = C.grid;
+Chart.defaults.font.family = "-apple-system, 'Segoe UI', Roboto, sans-serif";
+const opts = (extra={}) => Object.assign({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { boxWidth: 12, padding: 14 } } }
+}, extra);
+
+// 01 — coverage of signal candidates
+new Chart(chCoverage, {
+  type: 'bar',
+  data: {
+    labels: ['Rating', 'Time (total)', 'Servings'],
+    datasets: [
+      { label: 'Coverage %', data: [2, 47, 59], backgroundColor: [C.bad, C.warn, C.accent], borderRadius: 6 },
+      { label: 'Usable threshold (80%)', data: [80, 80, 80], type: 'line', borderColor: C.violet, borderDash: [6,4], pointRadius: 0, borderWidth: 2 }
+    ]
+  },
+  options: opts({ scales: { y: { max: 100, ticks: { callback: v => v + '%' } } } })
+});
+
+// 01 — time distribution
+new Chart(chTime, {
+  type: 'bar',
+  data: {
+    labels: ['≤15 min', '16–30', '31–45', '46–60', '>60', 'unknown (null)'],
+    datasets: [{ label: 'Recipes', data: [5, 5, 1, 5, 6, 27], backgroundColor: [C.good, C.good, C.accent, C.accent, C.warn, '#3a4a6b'], borderRadius: 6 }]
+  },
+  options: opts()
+});
+
+// 01 — servings
+new Chart(chServings, {
+  type: 'doughnut',
+  data: { labels: ['Has servings (29)', 'Missing (20)'], datasets: [{ data: [29, 20], backgroundColor: [C.accent, '#3a4a6b'], borderWidth: 0 }] },
+  options: opts({ cutout: '62%' })
+});
+
+// 02 — checklist pass
+new Chart(chChecklist, {
+  type: 'bar',
+  data: {
+    labels: ['CORP (11 items)', 'CON support (3)', 'AC verified (2)', 'SPEC/TEST-first (3)'],
+    datasets: [{ label: 'Passed', data: [11, 3, 2, 3], backgroundColor: C.good, borderRadius: 6 },
+               { label: 'Failed', data: [0, 0, 0, 0], backgroundColor: C.bad, borderRadius: 6 }]
+  },
+  options: opts({ scales: { x: { stacked: true }, y: { stacked: true, max: 12 } } })
+});
+
+// 02 — quota vs actual
+new Chart(chQuota, {
+  type: 'bar',
+  data: {
+    labels: ['Vegetarian', 'Dessert', 'Soup', 'Japanese', 'Italian', 'Indian', 'Mexican', 'Ukrainian'],
+    datasets: [
+      { label: 'Records in corpus', data: [14, 12, 9, 5, 5, 4, 3, 3], backgroundColor: C.accent, borderRadius: 6 },
+      { label: 'Pinned quota', data: [8, 9, 9, 5, 6, 6, 5, 3], backgroundColor: 'rgba(167,139,250,.25)', borderColor: C.violet, borderWidth: 2, borderRadius: 6 }
+    ]
+  },
+  options: opts()
+});
+
+// 03 — categories
+new Chart(chCategories, {
+  type: 'bar',
+  data: {
+    labels: ['Vegetarian', 'Dessert', 'Soup', 'Japanese', 'Italian', 'Indian', 'Mexican', 'Ukrainian'],
+    datasets: [{ label: 'Records', data: [14, 12, 9, 5, 5, 4, 3, 3], backgroundColor: C.palette, borderRadius: 6 }]
+  },
+  options: opts({ indexAxis: 'y', plugins: { legend: { display: false } } })
+});
+
+// 03 — ingredients
+new Chart(chIngredients, {
+  type: 'bar',
+  data: {
+    labels: ['salt', 'water', 'sugar (+variants)', 'eggs', 'baking powder', 'vanilla extract', 'vegetable oil', 'garlic', 'turmeric', 'olive oil'],
+    datasets: [{ label: 'Recipes containing', data: [17, 8, 9, 6, 5, 5, 4, 4, 3, 3], backgroundColor: C.cyan, borderRadius: 6 }]
+  },
+  options: opts({ indexAxis: 'y', plugins: { legend: { display: false } } })
+});
+
+// 03 — vegetarian under 30
+new Chart(chVeg, {
+  type: 'bar',
+  data: {
+    labels: ['A Nice Cup of Tea', 'Alfredo Sauce', 'Air Fried Zucchini', 'Basic Indian Tomato Gravy'],
+    datasets: [{ label: 'Total minutes', data: [15, 15, 18, 20], backgroundColor: C.good, borderRadius: 6 },
+               { label: '30-min limit', data: [30, 30, 30, 30], type: 'line', borderColor: C.bad, borderDash: [6,4], pointRadius: 0, borderWidth: 2 }]
+  },
+  options: opts({ indexAxis: 'y', scales: { x: { max: 35 } } })
+});
+
+// 03 — complexity
+new Chart(chComplexity, {
+  type: 'radar',
+  data: {
+    labels: ['Ingredients min', 'Ingredients median', 'Ingredients max', 'Steps min', 'Steps median', 'Steps max'],
+    datasets: [
+      { label: 'Recipe stats', data: [2, 9, 41, 1, 7, 31], backgroundColor: 'rgba(91,157,255,.18)', borderColor: C.accent, pointBackgroundColor: C.accent },
+      { label: 'Corpus median line', data: [9, 9, 9, 7, 7, 7], borderColor: C.violet, borderDash: [5,4], pointRadius: 0 }
+    ]
+  },
+  options: opts({ scales: { r: { angleLines: { color: C.grid }, grid: { color: C.grid } } } })
+});
+</script>
+</body>
+</html>
