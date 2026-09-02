@@ -1,19 +1,21 @@
 # Recipe Q&A Service — Work Plan
 
-Основной принцип:
+Core principle:
 
-> Сначала понять и формализовать требования → затем спроектировать решение → затем реализовать → затем проверить → затем задеплоить → затем провести финальный аудит.
+> First understand and formalize the requirements → then design the solution →
+> then implement → then verify → then deploy → then run the final audit.
 
 ## Phase 0 — Requirements + acceptance — **60–90 min**
 
-1. Read assignment carefully.
+1. Read the assignment carefully.
 2. Extract requirements.
 3. Write `SPEC.md`.
-  1. Define acceptance checklist.
+  1. Define the acceptance checklist.
   2. Record assumptions.
-4. Create a traceable acceptance checklist mapping each assignment requirement to a verification method (test, eval, manual check, or deployment check).
+4. Create a traceable acceptance checklist mapping each assignment requirement to
+a verification method (test, eval, manual check, or deployment check).
 
-Зафиксировать:
+Fix down:
 
 - answerable / out-of-corpus / out-of-domain;
 - constraints: time, diet, ingredients;
@@ -23,24 +25,23 @@
 - API schema;
 - latency and cost targets.
 
-Дополнительно зафиксировать:
+Additionally fix down:
 
-- full JSON response schema as a machine-readable schema;
+- the full JSON response schema as a machine-readable schema;
 - what evidence is sufficient to consider a question answerable;
 - assumptions for any ambiguous assignment requirements.
 
 
-
 ### Phase 1 — Architecture + corpus — **45–60 min**
 
-1. Choose stack.
+1. Choose the stack.
 2. Write 2–3 ADRs.
 3. Implement reproducible Wikibooks ingestion.
-4. Build 40–60 recipe corpus.
+4. Build the 40–60 recipe corpus.
 5. Run EDA on the corpus to check whether a reliable selection signal exists.
 6. Verify corpus variety.
 
-ADRs examples:
+ADR examples:
 
 - **ADR-001:** Retrieval + constraints + post-EDA recipe selection signal
 - **ADR-002:** Answer generation + grounding/refusal
@@ -56,17 +57,17 @@ Each ADR must contain:
 - real cost and latency numbers where possible;
 - conditions that would invalidate the decision.
 
-Не добавлять отдельный design doc без необходимости. Архитектурные решения должны быть отражены в `SPEC.md` и ADRs.
+Do not add a separate design doc without need. Architectural decisions must be
+reflected in `SPEC.md` and the ADRs.
 
-**Не делать ручную подготовку данных, которую нельзя повторить.**
+**Do not do manual data preparation that cannot be reproduced.**
 
 ---
 
 
-
 ## Phase 2 — First vertical slice — **60–90 min**
 
-Как можно раньше получить работающий путь:
+Get a working path as early as possible:
 
 ```
 question
@@ -84,17 +85,17 @@ POST /ask
 
 Milestone:
 
-> Один вопрос → корректный grounded answer → citation → valid JSON.
+> One question → correct grounded answer → citation → valid JSON.
 
-Сразу определить и реализовать `/ask` + `/health`.
+Define and implement `/ask` + `/health` right away.
 
 Maintain small, meaningful commits throughout the project.
 
-**test before implementation для части функций**.
+**Test before implementation for part of the functionality.**
 
 ## Phase 3 — Correctness + refusal — **60–90 min**
 
-Улучшить:
+Improve:
 
 - retrieval;
 - constraint filtering;
@@ -104,15 +105,15 @@ Maintain small, meaningful commits throughout the project.
 - refusal;
 - allergy/safety behavior.
 
-For every refusal path, verify that the response is machine-detectable through the JSON fields and does not rely on polite text alone.
+For every refusal path, verify that the response is machine-detectable through
+the JSON fields and does not rely on polite text alone.
 
 ## Phase 4 — Tests + Eval — **60–90 min**
 
 
-
 ### Tests
 
-Покрыть deterministic logic:
+Cover deterministic logic:
 
 - ingestion;
 - normalization;
@@ -122,10 +123,9 @@ For every refusal path, verify that the response is machine-detectable through t
 - refusals;
 - edge cases.
 
-Для части функциональности:
+For part of the functionality:
 
 > test first → implementation.
-
 
 
 ### Commit discipline
@@ -133,13 +133,13 @@ For every refusal path, verify that the response is machine-detectable through t
 - Keep commits small and logically focused.
 - Commit tests before implementation for at least part of the functionality.
 - Avoid large "implement everything" commits.
-- Make the commit history show the progression from specification → tests → implementation → evaluation → deployment.
-
+- Make the commit history show the progression from specification → tests →
+implementation → evaluation → deployment.
 
 
 ### Eval harness
 
-Сделать **12–15 golden questions**:
+Build **12–15 golden questions**:
 
 - normal questions;
 - constraints;
@@ -150,7 +150,7 @@ For every refusal path, verify that the response is machine-detectable through t
 - allergy/safety;
 - edge cases.
 
-Автоматически проверять:
+Automatically verify:
 
 - JSON schema;
 - refusal correctness;
@@ -161,7 +161,7 @@ For every refusal path, verify that the response is machine-detectable through t
 - that unanswerable questions are refused;
 - edge cases.
 
-Одна команда:
+One command:
 
 ```
 python -m evals.run
@@ -171,7 +171,7 @@ The eval output should make failures easy to diagnose.
 
 ## Phase 5 — UI — **30–45 min**
 
-Минимальный TypeScript UI:
+Minimal TypeScript UI:
 
 - question input;
 - loading/error;
@@ -179,16 +179,17 @@ The eval output should make failures easy to diagnose.
 - citations;
 - refusal.
 
-**Не тратить время на UI polish.**
+**Do not spend time on UI polish.**
 
-После завершения core можно рассмотреть дополнительные требования из
-[`03_SPEC_APPENDIX.md`](03_SPEC_APPENDIX.md). Они не блокируют
-выполнение задания и не должны отнимать время у `/ask`, обычного UI, тестов,
-eval и deployment.
+After the core is complete, the additional requirements from
+[`docs/03_SPEC_APPENDIX.md`](docs/03_SPEC_APPENDIX.md) may be considered. They
+do not block the assignment and must not take time away from `/ask`, the
+standard UI, tests, eval, and deployment.
+
 
 ## Phase 6 — Production + Deploy — **60–90 min**
 
-Минимум:
+Minimum:
 
 - Docker;
 - environment-based secrets;
@@ -206,27 +207,30 @@ Deployment verification:
 
 - deploy from a clean repository;
 - verify UI and API publicly;
-- verify deployment can be executed twice without breaking the service or duplicating resources;
-- choose and document one container-level access method: hosting dashboard access OR logs/container status.
+- verify the deployment can be executed twice without breaking the service or
+duplicating resources;
+- choose and document one container-level access method: hosting dashboard
+access OR logs/container status.
 
-README должен объяснять:
+The README must explain:
 
-- как запустить;
-- как собрать corpus;
-- как протестировать/evaluate;
-- как deploy;
-- где logs/container status;
-- какие secrets нужны.
+- how to run it;
+- how to build the corpus;
+- how to test/evaluate;
+- how to deploy;
+- where the logs/container status are;
+- which secrets are needed.
 
-Если реализованы дополнительные требования из appendix, README также должен
-отдельно описать их как дополнительные возможности и указать способ проверки.
-Нельзя выдавать дополнительную фичу за обязательную часть задания.
+If additional requirements from the appendix are implemented, the README must
+also describe them separately as additional capabilities and state how to verify
+them. An extra feature must not be presented as a mandatory part of the
+assignment.
 
 
 
 ## Phase 7 — README + final audit + submission check — 30–45 min
 
-README обязательно содержит:
+The README must contain:
 
 - Architecture;
 - Local Development;
@@ -249,11 +253,11 @@ Cost section:
 AI usage:
 
 - prompts/instructions;
-- что принял от агента;
-- что переписал сам;
-- важные решения.
+- what was accepted from the agent;
+- what was rewritten independently;
+- key decisions.
 
-Scope Cuts / Known Limitations;
+Scope Cuts / Known Limitations:
 
 - what was intentionally not implemented because of the 6–8 hour budget;
 - why it was cut;
@@ -271,4 +275,4 @@ Final audit:
 - deployment is safe to repeat;
 - README contains cost, latency, bottleneck, observability and limitations;
 - AI usage artifacts are committed;
-- git history is granular enough to demonstrate engineering process.
+- git history is granular enough to demonstrate the engineering process.

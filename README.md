@@ -1,70 +1,69 @@
 # Recipe Q&A Service
 
-## Статус
+## Status
 
-Репозиторий находится на этапе specification/planning. Реализация сервиса,
-публичные URL, deployment provider, выбранная модель и измеренные cost/latency
-будут зафиксированы после завершения core implementation. Корневой
-[`SPEC.md`](SPEC.md) — canonical entry point, а нормативный текст
-хранится в [`docs/03_SPEC.md`](docs/03_SPEC.md), без второй копии.
+The repository is at the specification/planning stage. The service implementation,
+public URLs, deployment provider, selected model, and measured cost/latency will be
+recorded after the core implementation is complete. The root
+[`SPEC.md`](SPEC.md) is the canonical entry point, and the normative text is
+kept in [`docs/03_SPEC.md`](docs/03_SPEC.md), without a second copy.
 
-До EDA анализа корпуса фиксируется baseline `lowest stable recipe ID` для
-одинаково релевантных рецептов после фильтрации. Если EDA найдёт более хороший
-и надёжный сопоставимый сигнал — например, popularity, количество просмотров
-или пользовательские likes — он может заменить baseline. Сигнал не может
-нарушать hard constraints; смена стратегии фиксируется в ADR и
-детерминированных тестах. Если надёжного сигнала нет, остаётся stable-ID
-baseline.
+Until the corpus EDA is done, a baseline of the `lowest stable recipe ID` is fixed
+for equally relevant recipes after filtering. If EDA finds a better and reliable
+comparable signal — for example, popularity, view count, or user likes — it may
+replace the baseline. A signal cannot violate hard constraints; a strategy change
+is recorded in an ADR and in deterministic tests. If no reliable signal exists,
+the stable-ID baseline remains.
 
 ## Core scope
 
-Обязательный MVP включает:
+The mandatory MVP includes:
 
-- воспроизводимый корпус из 40–60 рецептов Wikibooks Cookbook;
-- grounded `POST /ask` с machine-readable response, citations и refusals;
-- одностраничный TypeScript UI с обычным JSON-режимом;
-- deterministic tests, 12–15-question golden eval, Docker и deployment.
+- a reproducible corpus of 40–60 recipes from the Wikibooks Cookbook;
+- grounded `POST /ask` with a machine-readable response, citations, and refusals;
+- a one-page TypeScript UI with the standard JSON mode;
+- deterministic tests, a 12–15-question golden eval, Docker, and deployment.
 
-Дополнительные требования, включая streaming inline citations, вынесены в
-[`03_SPEC_APPENDIX.md`](03_SPEC_APPENDIX.md). Они реализуются
-только после core, не заменяют обязательные API, UI, tests, eval или
-deployment и используют тот же retrieval/grounding pipeline.
+Additional requirements, including streaming inline citations, are moved to
+[`docs/03_SPEC_APPENDIX.md`](docs/03_SPEC_APPENDIX.md). They are implemented
+only after the core, do not replace the mandatory API, UI, tests, eval, or
+deployment, and use the same retrieval/grounding pipeline.
 
 ## Scope cuts
 
-В рамках лимита 6–8 часов намеренно исключены authentication, accounts,
-multi-turn chat, saved history, voice/image assistance, nutrition calculations,
-shopping lists, recipe generation и UI polish. Эти cuts уменьшают риск оставить
-core-путь недоделанным. Для возврата любой из функций сначала понадобятся
-отдельные требования, acceptance cases, тесты и оценка стоимости/latency.
+Within the 6–8 hour limit, authentication, accounts, multi-turn chat, saved
+history, voice/image assistance, nutrition calculations, shopping lists, recipe
+generation, and UI polish are intentionally excluded. These cuts reduce the risk
+of leaving the core path unfinished. To bring any of these features back,
+separate requirements, acceptance cases, tests, and a cost/latency estimate are
+needed first.
 
 ## Long-chat policy for a future extension
 
-MVP не является чатом и не хранит историю. Если multi-turn chat появится позже,
-для model context нужно суммаризовывать старую историю, но пользовательский
-текст и полный transcript должны сохраняться и показываться пользователю
-полностью. Summary не должен заменять исходный текст в UI или становиться
-единственным audit trail.
+The MVP is not a chat and stores no history. If multi-turn chat appears later,
+the model context needs old history summarized, but the user's text and the full
+transcript must be preserved and shown to the user in full. A summary must not
+replace the original text in the UI or become the only audit trail.
 
 ## Quality, security and AI-assisted checks
 
-До merge CI должен запускать formatter/linter, type checks, unit/contract tests,
-dependency and secret scans, а также container/SAST checks, когда они применимы.
-Агентское review (например, CodeRabbit или внутренний агент) используется как
-дополнительная проверка качества и уязвимостей: его замечания проверяются
-человеком и не являются единственным security gate. В финальном README нужно
-указать фактически выбранные инструменты и результаты запусков.
+Before merge, CI must run the formatter/linter, type checks, unit/contract tests,
+dependency and secret scans, plus container/SAST checks where applicable.
+Agent-assisted review (for example, CodeRabbit or an internal agent) is used as
+an additional quality and vulnerability check: its findings are verified by a
+human and are not the sole security gate. The final README must state the tools
+actually chosen and the results of their runs.
 
 ## Deployment, cost and latency
 
-Эти значения пока не определены, поскольку implementation и deployment ещё не
-выбраны. Финальная версия README должна указать provider и причину выбора,
-public UI/API URLs, container-level access, команды локального и чистого
-deployment, выбранные модели, стоимость одного и 1 000 вопросов, latency,
-текущий bottleneck и следующий optimization.
+These values are not yet defined because implementation and deployment have not
+been selected. The final README must state the provider and the reason for the
+choice, the public UI/API URLs, container-level access, the commands for local
+and clean deployment, the selected models, the cost of one question and of 1,000
+questions, latency, the current bottleneck, and the next optimization.
 
 ## AI usage notes
 
-В репозитории должны быть сохранены использованные instructions/prompts и
-короткая заметка о том, что принято от агента, а что переписано самостоятельно.
-Ответственность за архитектурные решения и код остаётся за разработчиком.
+The repository must keep the instructions/prompts used and a short note on what
+was accepted from the agent and what was rewritten independently. Responsibility
+for architectural decisions and code remains with the developer.
