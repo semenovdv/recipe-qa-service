@@ -1,14 +1,14 @@
 {
   "count": 49,
   "coverage": {
-    "time_minutes": 23,
+    "time_minutes": 22,
     "rating": 1,
     "servings": 29
   },
   "time_minutes_distribution": {
     "min": 10,
     "median": 50,
-    "max": 1470
+    "max": 120
   },
   "rating_distribution": {
     "min": 2,
@@ -23,8 +23,8 @@
         "usable_as_selection_signal": false
       },
       "time_minutes": {
-        "coverage": 0.469,
-        "distinct_values": 13,
+        "coverage": 0.449,
+        "distinct_values": 12,
         "usable_as_selection_signal": false
       }
     },

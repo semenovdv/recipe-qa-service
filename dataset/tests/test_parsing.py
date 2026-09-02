@@ -99,6 +99,7 @@ class TestTimeParsing:
             ("1 hour", 60),
             ("1 1/2 hours", 90),
             ("1–2 hours", None),  # range without single total -> ambiguous
+            ("30 minutes + 24 hours", None),  # multi-phase total -> ambiguous
             ("varies", None),
             ("", None),
             ("2", None),  # bare number without a unit is ambiguous

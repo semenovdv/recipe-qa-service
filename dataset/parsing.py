@@ -94,6 +94,11 @@ def parse_time_minutes(raw: str | None) -> int | None:
     # reject ranges like "1-2 hours", "1–2 hours", "30-40 min"
     if re.search(r"\d\s*[-–—]\s*\d", text):
         return None
+    # reject multi-phase totals like "30 minutes + 24 hours": the "+" marks
+    # additional (e.g. resting/marinating) time, which is ambiguous for the
+    # spec §4.6 hard-constraint semantics -> not a reliable total
+    if "+" in text:
+        return None
     if not re.search(r"\d", text):
         return None
 
