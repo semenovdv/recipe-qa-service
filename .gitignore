@@ -1,2 +1,11 @@
 # Personal scratch notes; not part of the deliverable.
 /docs/hidden.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Ingestion raw cache (build artifact, not part of the deliverable)
+dataset/raw/
