@@ -130,10 +130,16 @@ class TestSections:
     def test_ingredients_normalized(self) -> None:
         content = page_content(BORSCHT, 6470)
         ingredients = extract_ingredients(content)
-        assert "potatoes" in ingredients
-        assert "beets" in ingredients
+        # normalization keeps the preparation word but drops quantities and
+        # parenthetical notes: "1½ cups thinly-sliced potatoes (about 3 …)"
+        # -> "thinly-sliced potatoes"
+        assert "thinly-sliced potatoes" in ingredients
+        assert "thinly-sliced beets" in ingredients
+        assert "water" in ingredients
         # markup must not leak into normalized names
         assert not any("[" in item or "{" in item for item in ingredients)
+        # quantities are stripped from the front of every name
+        assert not any(item[0].isdigit() for item in ingredients)
 
     def test_steps_from_borscht(self) -> None:
         content = page_content(BORSCHT, 6470)
