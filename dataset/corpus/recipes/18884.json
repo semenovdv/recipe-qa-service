@@ -1,0 +1,43 @@
+{
+  "pageid": 18884,
+  "revid": 4525795,
+  "title": "Cookbook:Albanian Stewed Fig Pudding",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Albanian_Stewed_Fig_Pudding",
+  "fetched_at": "2026-09-02T20:40:30Z",
+  "categories": [
+    "Baked recipes",
+    "Boiled recipes",
+    "Recipes for pudding",
+    "Recipes using fig",
+    "Recipes using granulated sugar",
+    "Recipes using ground cinnamon",
+    "Recipes using milk"
+  ],
+  "summary": {
+    "category": null,
+    "servings": "4",
+    "time_minutes": 15,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 cup (240 g) white granulated sugar",
+    "4 cups (900 ml) milk",
+    "1 cup (240 g) finely-grated dried figs",
+    "Ground cinnamon"
+  ],
+  "ingredients": [
+    "(240 g) white granulated sugar",
+    "(900 ml) milk",
+    "(240 g) finely-grated dried figs",
+    "Ground cinnamon"
+  ],
+  "steps": [
+    "Stir sugar into milk, bring to a boil, and remove from heat. Gradually add figs, stirring continuously.",
+    "Pour into earthenware serving bowls and bake in moderate oven (350°F or 180°C) for 10 minutes.",
+    "Chill and sprinkle with cinnamon.",
+    "Serve cold."
+  ],
+  "description": "==Ingredients== *1 cup (240 g) white granulated sugar *4 cups (900 ml) milk *1 cup (240 g) finely-grated dried figs *Ground cinnamon",
+  "variant_group": "albanian stewed fig pudding",
+  "source_text": "{{recipesummary\n| Cuisine = Albanian\n| servings = 4\n| time = 15 minutes\n| difficulty = 2\n}}\n\n{{recipe}}\n\n'''Stewed dry figs''' ('''''hoshaf me fiq të thatë''''') is an [[Cookbook:Cuisine of Albania|Albanian]] pudding.\n\n==Ingredients==\n*1 [[Cookbook:Cup|cup]] (240 [[Cookbook:Gram|g]]) white granulated [[Cookbook:Sugar|sugar]]\n*4 cups (900 [[Cookbook:Milliliter|ml]]) [[Cookbook:Milk|milk]]\n*1 cup (240 g) finely-[[Cookbook:Grater|grated]] dried [[Cookbook:Fig|figs]]\n*Ground [[Cookbook:Cinnamon|cinnamon]]\n\n==Procedure==\n#Stir sugar into milk, bring to a boil, and remove from heat. Gradually add figs, stirring continuously.\n#Pour into earthenware serving bowls and bake in moderate oven (350°F or 180°C) for 10 minutes.\n#Chill and sprinkle with cinnamon.\n#Serve cold.\n\n==References==\n''This article contains information from [http://www.frosina.org Frosina.org] and it is used with [[w:User:Dori/www.frosina.org permission|permission]].''\n\n[[Category:Albanian recipes|{{PAGENAME}}]]\n[[Category:Recipes for dessert|{{PAGENAME}}]]\n[[Category:Recipes using fig]]\n[[Category:Boiled recipes]]\n[[Category:Baked recipes]]\n[[Category:Recipes_with_metric_units|{{PAGENAME}}]]\n[[Category:Recipes for pudding]]\n[[Category:Recipes using granulated sugar]]\n[[Category:Recipes using ground cinnamon]]\n[[Category:Recipes using milk]]"
+}

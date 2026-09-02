@@ -10,8 +10,8 @@
     {"category": "Italian recipes", "quota": 6, "axis": "cuisine"},
     {"category": "Japanese recipes", "quota": 5, "axis": "cuisine"},
     {"category": "Mexican recipes", "quota": 5, "axis": "cuisine"},
-    {"category": "Ukrainian recipes", "quota": 4, "axis": "cuisine"},
-    {"category": "Soup recipes", "quota": 8, "axis": "type"},
-    {"category": "Recipes for dessert", "quota": 8, "axis": "type"}
+    {"category": "Ukrainian recipes", "quota": 3, "axis": "cuisine"},
+    {"category": "Soup recipes", "quota": 9, "axis": "type"},
+    {"category": "Recipes for dessert", "quota": 9, "axis": "type"}
   ]
 }

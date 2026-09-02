@@ -62,6 +62,22 @@ def _record_from_page(page: dict[str, Any], fetched_at: str) -> dict[str, Any]:
     return record
 
 
+def _build_from_pages(pages: list[dict[str, Any]], fetched_at: str) -> list[dict[str, Any]]:
+    """Parse fetched pages into records, dropping and reporting gate failures."""
+    records: list[dict[str, Any]] = []
+    dropped: list[str] = []
+    for page in pages:
+        try:
+            records.append(_record_from_page(page, fetched_at))
+        except ValueError as error:
+            dropped.append(str(error))
+    if dropped:
+        print(f"structure gate dropped {len(dropped)} pages:", file=sys.stderr)
+        for line in dropped:
+            print(f"  - {line}", file=sys.stderr)
+    return records
+
+
 def _write_corpus(records: list[dict[str, Any]], config: dict[str, Any]) -> str:
     RECIPES_DIR.mkdir(parents=True, exist_ok=True)
     for old_file in RECIPES_DIR.glob("*.json"):

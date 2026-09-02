@@ -1,0 +1,47 @@
+{
+  "pageid": 33309,
+  "revid": 4587276,
+  "title": "Cookbook:Agar Jelly",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Agar_Jelly",
+  "fetched_at": "2026-09-02T20:40:30Z",
+  "categories": [
+    "Recipes for dessert",
+    "Recipes using agar",
+    "Recipes using almond extract",
+    "Recipes using cow milk",
+    "Recipes using granulated sugar",
+    "Recipes with metric units"
+  ],
+  "summary": {
+    "category": "Recipes for dessert",
+    "servings": null,
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "powder",
+    "white granulated",
+    "½ tsp",
+    "6 Tbsp",
+    "150 ml (0.625 cups)"
+  ],
+  "ingredients": [
+    "powder",
+    "white granulated",
+    "tsp",
+    "Tbsp",
+    "ml"
+  ],
+  "steps": [
+    "Put agar, sugar, and water in a saucepan and bring to boil.",
+    "Take off heat, and drain some of the water.",
+    "When cool, add in milk and almond extract.",
+    "Pour mixture into tin.",
+    "When completely cool, chill in the refrigerator for about 15 minutes until set.",
+    "Cut almond jelly into cubes.",
+    "Serve with fruit cocktail and syrup in a glass bowl."
+  ],
+  "description": "This jelly dessert uses agar as a thickener, making it suitable for vegetarians.",
+  "variant_group": "agar jelly",
+  "source_text": "{{Recipe summary\n| Category = Recipes for dessert\n| Difficulty = 2\n}}\n\n{{recipe}}\n\nThis jelly dessert uses agar as a thickener, making it suitable for vegetarians.\n\n==Ingredients==\n* {{convert|5|g|oz}} {{cb|agar}} powder\n* {{convert|100|g|oz}} white granulated {{cb|sugar}}\n* {{convert|500|g|oz}} {{cb|water}}\n* {{convert|75|g|oz}} {{cb|milk}}\n* ½ [[Cookbook:Teaspoon|tsp]] {{cb|almond extract}}\n* 6 [[Cookbook:Tablespoon|Tbsp]] {{cb|fruit cocktail}}\n* 150 [[Cookbook:Milliliter|ml]] (0.625 cups) {{cb|syrup}}\n\n== Procedure ==\n# Put agar, sugar, and water in a [[Cookbook:Saucepan|saucepan]] and bring to [[Cookbook:Boiling|boil]]. \n# Take off heat, and drain some of the water.\n# When cool, add in milk and almond extract.\n# Pour mixture into tin. \n# When completely cool, chill in the refrigerator for about 15 minutes until set.\n# Cut almond jelly into cubes.\n# Serve with fruit cocktail and syrup in a glass bowl.\n\n[[Category:Recipes using agar]]\n[[Category:Recipes for dessert]]\n[[Category:Recipes with metric units]]\n[[Category:Recipes using almond extract]]\n[[Category:Recipes using granulated sugar]]\n[[Category:Recipes using cow milk]]"
+}
