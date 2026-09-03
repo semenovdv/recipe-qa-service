@@ -4,3 +4,4 @@ openai>=1.50.0
 fastapi==0.115.5
 uvicorn==0.34.0
 httpx==0.28.1
+psycopg[binary]==3.2.13
