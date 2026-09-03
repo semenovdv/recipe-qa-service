@@ -1,12 +1,14 @@
-"""Pipeline registry — the seam between HTTP and the AI stack.
+"""Pipeline — the seam between HTTP and the AI stack (ADR-001/002).
 
-The retrieval/generation pipeline (ADR-001/002) is not implemented yet.
-Until it is wired, the default app has NO pipeline and /ask raises
-dependency-unavailable (503) — an explicit, honest "AI not ready" state,
-never disguised as an answer or refusal (SPEC §7.3).
+``LunaPipeline`` is the real composition: extraction (luna @ none) →
+query embedding → hybrid retrieval (pgvector) → generation (luna @ medium)
+with the verbatim-citation evidence gate. Construction fails fast if the
+corpus version in the DB does not match the committed corpus (ADR-003 D3).
 
-Tests inject fakes via set_pipeline(); production will call set_pipeline()
-once from the composition root with the real implementation.
+If configuration is missing (no OPENAI_API_KEY / DATABASE_URL) or
+construction fails, the app keeps ``pipeline = None`` and /ask answers
+with the honest 503 dependency-unavailable problem (§7.3) — never a
+disguised answer or refusal. Tests inject fakes via set_pipeline().
 """
 from __future__ import annotations
 
@@ -41,3 +43,113 @@ def set_default_pipeline(pipeline: Pipeline | None) -> None:
     """Module-level wiring for the composition root."""
     global _pipeline
     _pipeline = pipeline
+
+
+# ---------------------------------------------------------------------------
+# Real implementation
+# ---------------------------------------------------------------------------
+
+class PipelineUnavailable(Exception):
+    """An infrastructure dependency failed (extraction/retrieval/generation).
+
+    Mapped by the HTTP layer to the 503 problem path — never to a 200
+    business refusal (§7.3: provider failures must not masquerade as
+    confident answers).
+    """
+
+
+class LunaPipeline:
+    """The ADR-001/002 two-tier pipeline over the pgvector corpus."""
+
+    def __init__(self, settings) -> None:
+        import logging
+
+        self._log = logging.getLogger("recipe_qa")
+        from openai import OpenAI
+
+        from app import retrieve
+
+        self._settings = settings
+        self._retrieve = retrieve
+        self._client = OpenAI(api_key=settings.openai_api_key)
+
+        committed = _committed_corpus_version(settings.corpus_index_path)
+        with _connect(settings.database_url) as conn:
+            self._vocabularies = retrieve.load_vocabularies(conn)
+            db_version = retrieve.load_corpus_version(conn)
+        if not db_version or db_version != committed:
+            raise RuntimeError(
+                f"corpus version mismatch: db={db_version!r} committed={committed!r}"
+            )
+
+    def answer(self, question: str, request_id: str) -> dict:
+        from app.extract import ExtractionError, extract_plan
+        from app.generate import GenerationError, generate
+        from app.schemas import AskResponse
+
+        try:
+            plan = extract_plan(
+                question, client=self._client, vocabularies=self._vocabularies
+            )
+            # §10 correlation: the extracted plan shapes everything downstream.
+            self._log.info("request_id=%s plan=%s", request_id, plan.model_dump())
+            query_vec = self._client.embeddings.create(
+                model="text-embedding-3-small", input=[plan.search_query]
+            ).data[0].embedding
+            records = self._retrieve.search(
+                plan, query_vec, self._settings.database_url
+            )
+            self._log.info(
+                "request_id=%s retrieval_ids=%s",
+                request_id, [r["pageid"] for r in records],
+            )
+        except (ExtractionError, self._retrieve.RetrievalError) as exc:
+            raise PipelineUnavailable(
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
+
+        if not records:
+            # No candidates survived the hard filters -> honest refusal (§9).
+            return AskResponse(
+                answer="No recipe in the cookbook matches those requirements, "
+                       "so I won't stretch the constraints. Try relaxing a "
+                       "filter or asking about a different dish.",
+                citations=[], refused=True, refusal_reason="out_of_corpus",
+            ).model_dump()
+
+        try:
+            return generate(question, records, client=self._client).model_dump()
+        except GenerationError as exc:
+            raise PipelineUnavailable(f"generation failed: {exc}") from exc
+
+
+def _connect(database_url: str):
+    import psycopg
+
+    return psycopg.connect(database_url)
+
+
+def _committed_corpus_version(index_path: str) -> str | None:
+    import json
+
+    try:
+        data = json.load(open(index_path, encoding="utf-8"))
+        return data.get("corpus_version")
+    except (OSError, ValueError):
+        return None
+
+
+def build_default_pipeline() -> "LunaPipeline | None":
+    """Composition root: build the real pipeline or report why not."""
+    from app.settings import get_settings
+
+    settings = get_settings()
+    if not settings.openai_api_key or not settings.database_url:
+        return None
+    try:
+        return LunaPipeline(settings)
+    except Exception as exc:  # noqa: BLE001 — construction is fail-fast
+        import logging
+
+        logging.getLogger("recipe_qa").error("pipeline unavailable: %s", exc)
+        return None

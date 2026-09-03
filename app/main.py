@@ -27,17 +27,27 @@ from app.errors import (
     problem_body,
 )
 from app.schemas import AskResponse
+from app.pipeline import PipelineUnavailable
 
 logger = logging.getLogger("recipe_qa")
+if not logging.getLogger().handlers:
+    # §10: app logs go to stdout (PaaS-collected); uvicorn configures only
+    # its own loggers, so give the root a basic handler for local runs.
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 MAX_QUESTION_CHARS = 1000          # §7.1
 MAX_BODY_BYTES = 64 * 1024         # §7.3: separately enforced body limit → 413
 REQUIRED_ACCEPT = "application/json"  # §7.1: client MUST send exactly this
 
 
-def create_app() -> FastAPI:
+def create_app(build_pipeline: bool = True) -> FastAPI:
     app = FastAPI(title="Recipe Q&A Service", version="0.1.0")
     _register_error_handlers(app)
+    if build_pipeline:
+        from app.pipeline import build_default_pipeline, set_pipeline
+
+        # None (config missing / DB mismatch) keeps the honest 503 state.
+        set_pipeline(app, build_default_pipeline())
 
     @app.get("/health")
     async def health() -> JSONResponse:
@@ -63,11 +73,15 @@ def create_app() -> FastAPI:
 
         pipeline = pipeline_reg.get_pipeline(request.app)
         if pipeline is None:
-            # AI stack not wired yet: honest 503, never a fake answer (§7.3).
+            # AI stack unavailable (not configured / DB mismatch): honest 503,
+            # never a fake answer (§7.3).
             raise dependency_unavailable("the answering pipeline is not available")
 
         request_id = uuid.uuid4().hex
-        result = _validate_envelope(pipeline.answer(question, request_id))
+        try:
+            result = _validate_envelope(pipeline.answer(question, request_id))
+        except PipelineUnavailable as exc:
+            raise dependency_unavailable(str(exc)) from exc
         return JSONResponse(result.model_dump())
 
     return app
