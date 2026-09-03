@@ -138,9 +138,9 @@ a demo) and must handle paraphrase ("eggplant dish" → `Baingan Bartha`). Decis
   tuned on a small labeled set from the golden cases; threshold: minimum fusion score
   for "relevant" is calibrated and recorded here after golden-eval tuning (placeholder
   resolved in Phase 4; initial gate = any nonzero BM25 hit OR cosine ≥ 0.30).
-- **Cold-start**: embeddings for query come from the same model; index is rebuilt from
-  the committed corpus at deploy startup (49 records → <1 s), so no vector store is
-  required for correctness at this scale (storage decision in ADR-003).
+- **Cold-start**: embeddings for query come from the same model; the served corpus is
+  a committed, versioned artifact loaded into Postgres+pgvector by a deterministic
+  seeder with a boot-time `corpus_version` check (storage decision in ADR-003).
 
 ### D4. Refusal paths preserved
 
