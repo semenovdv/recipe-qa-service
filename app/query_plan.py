@@ -1,29 +1,30 @@
 """QueryPlan / FilterSpec v1 — ADR-001 D2.
 
 The extraction call (gpt-5.6-luna @ none, Structured Outputs) translates a
-user question into a QueryPlan: a free-text ranking query plus a list of
-typed requirements. This module is the *contract* for that object:
+user question into a QueryPlan. Pydantic v2 models are the single source of
+truth: the same classes validate the plan in code AND generate the strict
+JSON schema handed to the OpenAI structured-outputs API.
 
 - ``parse_plan``      — structural validation (whitelisted field/op pairs,
-                        strict value typing, no unknown keys).
+                        strict value typing, no unknown keys via extra=forbid).
 - ``normalize_plan``  — categorical values checked against corpus
-                        vocabularies (case/trim normalized). Out-of-
-                        vocabulary values raise: hard constraints are never
-                        fuzzy-matched.
+                        vocabularies; out-of-vocabulary values raise
+                        FilterSpecError (hard constraints are never
+                        fuzzy-matched).
 - ``evaluate_requirement`` / ``filter_records`` — deterministic evaluation
                         against records; unknown data fails conservatively
                         (None is never fast/vegetarian/anything).
 
-The LLM has zero filter authority: it only emits the typed format, code
-decides everything. These functions are pure and offline-testable.
+``FilterSpecError`` remains the public error type: Pydantic ValidationErrors
+are bridged into it so callers need one exception.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from typing import Any, Literal, Tuple
+
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator, model_validator
 
 # Whitelist: field -> allowed ops -> expected value shape.
-# Scalar categorical: eq; scalar numeric: lte/gte; list categorical: any/all;
-# text: contains (case-insensitive substring).
 FIELD_OPS: dict[str, dict[str, str]] = {
     "ingredients": {"contains": "string"},
     "cuisine": {"eq": "string"},
@@ -38,81 +39,105 @@ FIELD_OPS: dict[str, dict[str, str]] = {
 # normalization (lowercase + strip compare).
 VOCAB_FIELDS = ("cuisine", "dish_type", "diet_tags")
 
+VocabularyKey = Literal["cuisines", "dish_types", "diet_tags"]
+VOCAB_KEY_FOR_FIELD: dict[str, VocabularyKey] = {
+    "cuisine": "cuisines",
+    "dish_type": "dish_types",
+    "diet_tags": "diet_tags",
+}
+
 
 class FilterSpecError(ValueError):
     """A QueryPlan violated FilterSpec v1 (structural or vocabulary)."""
 
 
-@dataclass(frozen=True)
-class Requirement:
+class Requirement(BaseModel):
+    """One typed hard constraint, e.g. ``cuisine EQ ukrainian``."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
     field: str
     op: str
-    value: object
+    value: Any
+
+    def __init__(self, field: str, op: str, value: Any) -> None:
+        # Positional bridge so both Requirement("f", "op", v) and
+        # Requirement(field=..., op=..., value=...) work.
+        super().__init__(field=field, op=op, value=value)
+
+    @model_validator(mode="after")
+    def _validate_shape(self) -> "Requirement":
+        allowed = FIELD_OPS.get(self.field)
+        if allowed is None:
+            raise ValueError(f"unknown field: {self.field!r}")
+        shape = allowed.get(self.op)
+        if shape is None:
+            raise ValueError(f"op {self.op!r} not allowed for field {self.field!r}")
+
+        v = self.value
+        if shape == "string":
+            if not isinstance(v, str) or not v.strip():
+                raise ValueError(f"{self.field} {self.op} requires a non-empty string value")
+        elif shape == "number":
+            if isinstance(v, bool) or not isinstance(v, (int, float)):
+                raise ValueError(f"{self.field} {self.op} requires a number")
+            if v < 0:
+                raise ValueError(f"{self.field} {self.op} requires a non-negative number")
+        else:  # list_of_strings
+            if (
+                not isinstance(v, list)
+                or not v
+                or not all(isinstance(s, str) and s.strip() for s in v)
+            ):
+                raise ValueError(
+                    f"{self.field} {self.op} requires a non-empty list of non-empty strings"
+                )
+        return self
 
 
-@dataclass(frozen=True)
-class QueryPlan:
+class QueryPlan(BaseModel):
+    """The extraction call's output: a ranking query + typed requirements.
+
+    ``model_json_schema()`` on this class is the strict schema used for the
+    OpenAI structured-outputs call (extra=forbid -> additionalProperties:
+    false, as strict mode requires).
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
     search_query: str
-    requirements: tuple[Requirement, ...] = field(default=())
+    # Required (no default): strict-mode structured outputs require every
+    # key, and a plan without an explicit requirements list is a contract
+    # violation, not an empty filter set.
+    requirements: Tuple[Requirement, ...]
+
+    @field_validator("search_query")
+    @classmethod
+    def _search_query_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("search_query must be a non-empty string")
+        return v
 
 
 # ---------------------------------------------------------------------------
 # Parsing — structural validation only (no corpus knowledge)
 # ---------------------------------------------------------------------------
 
-def _check_value_shape(field: str, op: str, value: object) -> None:
-    shape = FIELD_OPS[field][op]
-    if shape == "string":
-        if not isinstance(value, str) or not value.strip():
-            raise FilterSpecError(
-                f"{field} {op} requires a non-empty string value"
-            )
-    elif shape == "number":
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise FilterSpecError(f"{field} {op} requires a number")
-        if value < 0:
-            raise FilterSpecError(f"{field} {op} requires a non-negative number")
-    elif shape == "list_of_strings":
-        if (
-            not isinstance(value, list)
-            or not value
-            or not all(isinstance(v, str) and v.strip() for v in value)
-        ):
-            raise FilterSpecError(
-                f"{field} {op} requires a non-empty list of non-empty strings"
-            )
-
-
 def parse_plan(data: object) -> QueryPlan:
-    if not isinstance(data, dict):
-        raise FilterSpecError("query plan must be a JSON object")
-    if set(data.keys()) != {"search_query", "requirements"}:
-        raise FilterSpecError(
-            "query plan must have exactly search_query and requirements"
-        )
-    search_query = data["search_query"]
-    if not isinstance(search_query, str) or not search_query.strip():
-        raise FilterSpecError("search_query must be a non-empty string")
+    """Validate raw JSON (e.g. an LLM structured output) into a QueryPlan."""
+    try:
+        plan = QueryPlan.model_validate(data)
+    except ValidationError as exc:
+        raise FilterSpecError(_first_message(exc)) from exc
+    sq = plan.search_query.strip()
+    if sq != plan.search_query:
+        plan = plan.model_copy(update={"search_query": sq})
+    return plan
 
-    raw_reqs = data["requirements"]
-    if not isinstance(raw_reqs, list):
-        raise FilterSpecError("requirements must be a list")
 
-    requirements = []
-    for raw in raw_reqs:
-        if not isinstance(raw, dict) or set(raw.keys()) != {"field", "op", "value"}:
-            raise FilterSpecError(
-                "each requirement must have exactly field, op, value"
-            )
-        f, op = raw["field"], raw["op"]
-        if f not in FIELD_OPS:
-            raise FilterSpecError(f"unknown field: {f!r}")
-        if op not in FIELD_OPS[f]:
-            raise FilterSpecError(f"op {op!r} not allowed for field {f!r}")
-        _check_value_shape(f, op, raw["value"])
-        requirements.append(Requirement(f, op, raw["value"]))
-
-    return QueryPlan(search_query=search_query.strip(), requirements=tuple(requirements))
+def _first_message(exc: ValidationError) -> str:
+    err = exc.errors()[0]
+    return str(err.get("msg") or "invalid query plan")
 
 
 # ---------------------------------------------------------------------------
@@ -123,25 +148,23 @@ def _norm(s: str) -> str:
     return s.strip().lower()
 
 
-def normalize_plan(plan: QueryPlan, vocabularies: dict[str, set[str] | list[str]]) -> QueryPlan:
-    """Normalize/validate categorical values.
+def normalize_plan(
+    plan: QueryPlan, vocabularies: dict[str, set[str] | list[str]]
+) -> QueryPlan:
+    """Normalize/validate categorical values against the corpus vocabularies.
 
-    ``vocabularies`` maps a vocabulary name to canonical values, e.g.
-    ``{"cuisines": {"Indian", ...}, "diet_tags": ["vegetarian", ...]}``.
-    Vocabulary key convention: field ``cuisine`` -> key ``cuisines``;
-    ``dish_type`` -> ``dish_types``; ``diet_tags`` -> ``diet_tags``.
+    ``vocabularies`` maps vocabulary keys (``cuisines``/``dish_types``/
+    ``diet_tags``) to canonical (case-preserving) values, as returned by
+    ``app.db.vocabularies_from_records`` or loaded from the DB.
     """
-    key_for = {"cuisine": "cuisines", "dish_type": "dish_types", "diet_tags": "diet_tags"}
-    out = []
+    out: list[Requirement] = []
     for req in plan.requirements:
         if req.field in VOCAB_FIELDS:
-            vocab = vocabularies.get(key_for[req.field])
+            vocab = vocabularies.get(VOCAB_KEY_FOR_FIELD[req.field])
             values = req.value if isinstance(req.value, list) else [req.value]
             normalized = []
             for v in values:
-                match = next(
-                    (c for c in (vocab or []) if _norm(c) == _norm(v)), None
-                )
+                match = next((c for c in (vocab or []) if _norm(c) == _norm(v)), None)
                 if match is None:
                     raise FilterSpecError(
                         f"value {v!r} for field {req.field!r} "
@@ -149,10 +172,10 @@ def normalize_plan(plan: QueryPlan, vocabularies: dict[str, set[str] | list[str]
                     )
                 normalized.append(match)
             value = normalized if isinstance(req.value, list) else normalized[0]
-            out.append(Requirement(req.field, req.op, value))
+            out.append(req.model_copy(update={"value": value}))
         else:
             out.append(req)
-    return QueryPlan(plan.search_query, tuple(out))
+    return plan.model_copy(update={"requirements": tuple(out)})
 
 
 # ---------------------------------------------------------------------------

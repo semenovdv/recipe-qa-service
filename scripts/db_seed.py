@@ -105,7 +105,9 @@ def fetch_embeddings(records: list[dict]) -> dict[int, list[float]]:
 
 
 def apply(corpus_version: str, records: list[dict]) -> None:
-    url = os.environ.get("DATABASE_URL")
+    from app.settings import get_settings
+
+    url = get_settings().database_url
     if not url:
         sys.exit("DATABASE_URL is not set (see .env.example)")
 

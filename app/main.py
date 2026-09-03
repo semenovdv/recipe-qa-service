@@ -10,10 +10,10 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from app import corpus_meta
 from app import pipeline as pipeline_reg
@@ -26,6 +26,7 @@ from app.errors import (
     payload_too_large,
     problem_body,
 )
+from app.schemas import AskResponse
 
 logger = logging.getLogger("recipe_qa")
 
@@ -66,9 +67,8 @@ def create_app() -> FastAPI:
             raise dependency_unavailable("the answering pipeline is not available")
 
         request_id = uuid.uuid4().hex
-        result = pipeline.answer(question, request_id)
-        _validate_envelope(result)
-        return JSONResponse(result)
+        result = _validate_envelope(pipeline.answer(question, request_id))
+        return JSONResponse(result.model_dump())
 
     return app
 
@@ -97,39 +97,18 @@ def _parse_and_validate(raw: bytes) -> str:
     return question.strip()
 
 
-def _validate_envelope(result: Any) -> None:
-    """Enforce the §7.1 envelope + cross-field invariants at the boundary."""
-    expected_keys = {"answer", "citations", "refused", "refusal_reason"}
-    if not isinstance(result, dict) or set(result.keys()) != expected_keys:
-        raise internal_error("pipeline returned a malformed response envelope")
+def _validate_envelope(result: object) -> AskResponse:
+    """Validate the pipeline result against the §7.1 Pydantic model.
 
-    answer = result["answer"]
-    if not isinstance(answer, str) or not answer:
-        raise internal_error("answer must be a non-empty string")
-    if not isinstance(result["refused"], bool):
-        raise internal_error("refused must be a boolean")
-    if not isinstance(result["citations"], list):
-        raise internal_error("citations must be a list")
-
-    refused = result["refused"]
-    reason = result["refusal_reason"]
-    if refused:
-        if reason not in pipeline_reg.REFUSAL_REASONS:
-            raise internal_error("refusal_reason must be one of the contract values")
-    else:
-        if reason is not None:
-            raise internal_error("refusal_reason must be null for non-refusals")
-        if not result["citations"]:
-            raise internal_error("a successful answer requires at least one citation")
-        for citation in result["citations"]:
-            if (
-                not isinstance(citation, dict)
-                or not isinstance(citation.get("title"), str)
-                or not citation["title"]
-                or not isinstance(citation.get("url"), str)
-                or not citation["url"]
-            ):
-                raise internal_error("each citation requires a title and a url")
+    Cross-field invariants (refusal enum, citations required for answers)
+    live in the model, not here; a violating pipeline becomes an internal
+    problem instead of a bad response. Details are logged, never returned.
+    """
+    try:
+        return AskResponse.model_validate(result)
+    except ValidationError as exc:
+        logger.warning("pipeline envelope violation: %s", exc.errors()[:3])
+        raise internal_error("pipeline returned a malformed response envelope") from exc
 
 
 def _register_error_handlers(app: FastAPI) -> None:
