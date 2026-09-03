@@ -13,3 +13,4 @@ dataset/raw/
 # Secrets
 .env
 .env.*
+!.env.example
