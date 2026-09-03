@@ -62,6 +62,8 @@ dataset/
 ├── README.md          # this file — dataset goals and contract
 ├── PLAN.md            # implementation plan + traceability matrix
 ├── config.json        # pinned category list and quotas (config, not code)
+├── enrich.py          # LLM enrichment CLI: plan | run | validate
+├── enrich_config.json # enrichment model settings (gpt-luna-low, temp 0)
 ├── ingest.py          # CLI: build | rebuild | validate | analyze | verify
 ├── mw_api.py          # MediaWiki API client (the only I/O module)
 ├── parsing.py         # pure wikitext parsing
@@ -74,6 +76,9 @@ dataset/
     ├── index.json     # corpus_version, count, category counts
     ├── manifest.json  # pageid -> revid pinning exact revisions
     └── eda_report.json# EDA: selection-signal decision
+
+enriched/            # committed derived layer (git-tracked, optional)
+    └── <pageid>.json # corpus record + LLM-normalized fields + provenance
 ```
 
 ## How to build
@@ -93,6 +98,39 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 The committed `corpus/` is already valid: `validate` and the test suite pass
 without network access. `rebuild` fetches exactly the manifest revisions, so
 any machine reproduces the same corpus.
+
+## LLM enrichment (optional derived layer)
+
+`dataset/enrich.py` runs each corpus record through **gpt-luna-low** with
+**Structured Outputs** and writes `dataset/enriched/<pageid>.json` — a derived
+layer on top of `corpus/`, which stays untouched:
+
+```bash
+export OPENAI_API_KEY=sk-…                            # required for `run`
+.venv/bin/python -m dataset.enrich plan               # what would be filled (no API)
+.venv/bin/python -m dataset.enrich run --record 4991  # one record first
+.venv/bin/python -m dataset.enrich run                # all records (~49 calls)
+.venv/bin/python -m dataset.enrich validate           # contract-check enriched/
+```
+
+What the model adds: cleaner `ingredients_normalized`, `cuisine`, `dish_type`,
+`diet_tags`, and `servings` fills. Every field carries a **provenance** entry
+(`extracted` = verbatim quote from the source text, `inferred` = tagged model
+inference for harmless fields only, `source_record` = deterministic parser
+already knew it, `dropped` = rejected by a code-side guard).
+
+**Guard rails (enforced in code, not just prompts):**
+
+- **Time is never LLM-guessed** (spec §4.6): an LLM-proposed `time_minutes`
+  survives only if its evidence quote parses deterministically to the same
+  number *and* appears verbatim in the record's recipesummary window;
+  otherwise it is dropped back to `null`. `inferred` time provenance is a
+  contract violation.
+- The base corpus is reproducible from the ingestion script alone (CORP-09/11);
+  enrichment is a separate, auditable derived layer, so reproducibility is
+  unaffected.
+- Model temperature is 0.0; responses are schema-constrained via Structured
+  Outputs, so re-runs are near-deterministic (provenance records the model).
 
 ## Non-goals
 

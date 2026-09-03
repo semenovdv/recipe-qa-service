@@ -1,0 +1,5 @@
+{
+  "model": "gpt-luna-low",
+  "temperature": 0.0,
+  "note": "Enrichment settings for dataset/enrich.py. temperature 0.0 maximizes reproducibility; structured outputs guarantee schema-valid responses."
+}

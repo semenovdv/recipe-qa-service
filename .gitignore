@@ -9,3 +9,7 @@ __pycache__/
 
 # Ingestion raw cache (build artifact, not part of the deliverable)
 dataset/raw/
+
+# Secrets
+.env
+.env.*
