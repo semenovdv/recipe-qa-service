@@ -1,0 +1,112 @@
+{
+  "pageid": 483725,
+  "revid": 4638528,
+  "source_revid": 4638528,
+  "title": "Cookbook:Ofe Aku (Igbo palmnut soup)",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Ofe_Aku_%28Igbo_palmnut_soup%29",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Igbo cuisine",
+    "Nigerian recipes",
+    "Palm fruit recipes",
+    "Soup recipes"
+  ],
+  "summary": {
+    "category": null,
+    "servings": "6-8",
+    "time_minutes": 60,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 kg palm fruits (or 500 ml prepared palm fruit extract)",
+    "2 litres water",
+    "500 g beef, cut into pieces",
+    "200 g stockfish, soaked",
+    "200 g dried fish, cleaned",
+    "1 medium onion, chopped",
+    "2 tablespoons ground crayfish",
+    "1 teaspoon ground fresh pepper, or to taste",
+    "2 seasoning cubes",
+    "Salt, to taste",
+    "1 tablespoon ground ogiri (optional)",
+    "Fresh scent leaves, shredded (optional)"
+  ],
+  "ingredients": [
+    "kg palm fruits",
+    "litres water",
+    "beef",
+    "stockfish",
+    "dried fish",
+    "medium onion",
+    "ground crayfish",
+    "ground fresh pepper",
+    "seasoning cubes",
+    "Salt",
+    "ground ogiri",
+    "Fresh scent leaves"
+  ],
+  "ingredients_normalized": [
+    "palm fruits",
+    "water",
+    "beef",
+    "stockfish",
+    "dried fish",
+    "onion",
+    "crayfish",
+    "fresh pepper",
+    "seasoning cubes",
+    "salt",
+    "ogiri",
+    "scent leaves"
+  ],
+  "steps": [
+    "Wash the palm fruits and boil them until soft.",
+    "Pound or mash the cooked fruits and mix with warm water to extract the palm j",
+    "Strain the mixture to remove fibres and kernels. Set the extract aside.",
+    "Wash the beef and cook with onion, seasoning cubes, and salt until tender.",
+    "Add the stockfish and continue cooking for several minutes.",
+    "Pour the palm fruit extract into the pot and bring to a boil.",
+    "Add the dried fish, crayfish, pepper, and ogiri if using.",
+    "Simmer for 20–30 minutes, stirring occasionally, until the soup thickens slightly and the oil rises to the surface.",
+    "Adjust seasoning with salt as needed.",
+    "Add the scent leaves and simmer for 2–3 minutes.",
+    "Remove from heat and serve hot."
+  ],
+  "description": "Ofe Akwu is a traditional soup from Southeastern Nigeria, particularly associated with the Igbo people. It is made from palm fruit extract and is commonly served with rice or boiled yam. Variations may include beef, fish, stockfish, and local seasonings.",
+  "variant_group": "ofe aku",
+  "cuisine": "Igbo",
+  "dish_type": "soup",
+  "diet_tags": [],
+  "source_text": "{{Recipe summary\n| Cuisine = Ofe Aku\n| Origin = Southeastern Nigeria\n| Servings = 6-8\n| Time = 1 hour\n| Difficulty = 2\n}}{{Incomplete recipe|reason=missing recipe header template, missing appropriate linking, missing/incorrect categories, are you supposed to cook the meat in water?}}\n'''Ofe Akwu''' is a traditional soup from Southeastern Nigeria, particularly associated with the Igbo people. It is made from palm fruit extract and is commonly served with rice or boiled yam. Variations may include beef, fish, stockfish, and local seasonings.\n\n== Ingredients ==\n=== For the palm extract ===\n* 1 kg palm fruits (or 500 ml prepared palm fruit extract)\n* 2 litres water\n=== For the soup ===\n* 500 g beef, cut into pieces\n* 200 g stockfish, soaked\n* 200 g dried fish, cleaned\n* 1 medium onion, chopped\n* 2 tablespoons ground crayfish\n* 1 teaspoon ground fresh pepper, or to taste\n* 2 seasoning cubes\n* Salt, to taste\n* 1 tablespoon ground ogiri (optional)\n* Fresh scent leaves, shredded (optional)\n== Procedure ==\n#Wash the palm fruits and boil them until soft.\n#Pound or mash the cooked fruits and mix with warm water to extract the palm j\n#Strain the mixture to remove fibres and kernels. Set the extract aside.\n#Wash the beef and cook with onion, seasoning cubes, and salt until tender.\n#Add the stockfish and continue cooking for several minutes.\n#Pour the palm fruit extract into the pot and bring to a boil.\n#Add the dried fish, crayfish, pepper, and ogiri if using.\n#Simmer for 20–30 minutes, stirring occasionally, until the soup thickens slightly and the oil rises to the surface.\n#Adjust seasoning with salt as needed.\n#Add the scent leaves and simmer for 2–3 minutes.\n#Remove from heat and serve hot.\n== Tips ==\n* Freshly extracted palm fruit juice gives the most authentic flavour.\n* The quantity of pepper may be adjusted according to preference.\n* Ofe Akwu is traditionally served with white rice but may also accompany boiled yam or plantain.\n[[Category:Nigerian recipes]] [[Category:Igbo cuisine]] [[Category:Soup recipes]] [[Category:Palm fruit recipes]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "palm fruits, water, beef, stockfish, dried fish, onion, crayfish, fresh pepper, seasoning cubes, salt, ogiri, scent leaves"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Igbo"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "soup"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "source_record",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

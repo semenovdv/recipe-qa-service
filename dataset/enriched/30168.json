@@ -1,0 +1,88 @@
+{
+  "pageid": 30168,
+  "revid": 4629803,
+  "source_revid": 4629803,
+  "title": "Cookbook:Carrots Cooked Kinpira Style",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Carrots_Cooked_Kinpira_Style",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Boiled recipes",
+    "Japanese recipes",
+    "Recipes using carrot",
+    "Recipes using vegetable oil",
+    "Side dish recipes",
+    "Vegan recipes",
+    "Vegetarian recipes"
+  ],
+  "summary": {
+    "category": "Carrot recipes",
+    "servings": null,
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "250 g (½ lb) carrots, julienned",
+    "1 Tbsp vegetable oil, preferably sesame oil",
+    "Water",
+    "Tamari or shoyu soy sauce, to taste"
+  ],
+  "ingredients": [
+    "( lb) carrots",
+    "vegetable oil",
+    "Water",
+    "Tamari or shoyu soy sauce"
+  ],
+  "ingredients_normalized": [
+    "carrots",
+    "vegetable oil",
+    "water",
+    "Tamari or shoyu soy sauce"
+  ],
+  "steps": [
+    "Cut the carrots into thin matchstick pieces (sen-giri, or julienned)",
+    "Pour a small amount of oil into a saucepan and sauté the carrot pieces briefly",
+    "Add just enough water to half-cover the carrot pieces",
+    "Place the lid on the pot and let the carrots simmer briefly on medium-low heat",
+    "Add a little tamari or shoyu to enhance flavour. Serve."
+  ],
+  "description": "Kinpira is a Japanese cooking term that roughly translates to sauté and simmer. The aim is to cook root vegetables such as carrots and burdock root in a minimum amount of water so that they end up tenderly cooked and with none of their flavour or nutritional value lost into discarded cooking water.",
+  "variant_group": "carrots cooked kinpira style",
+  "cuisine": "Japanese",
+  "dish_type": "side dish",
+  "diet_tags": [
+    "vegan",
+    "vegetarian"
+  ],
+  "source_text": "{{Recipe summary\n| Category = Carrot recipes\n| Difficulty = 2\n}}\n\n{{recipe}}| [[Cookbook:Cuisine of Japan|Cuisine of Japan]]\n\n'''Kinpira''' is a [[Cookbook:Cuisine of Japan|Japanese]] cooking term that roughly translates to ''[[Cookbook:Sautéing|sauté]] and [[Cookbook:Simmering|simmer]]''. The aim is to cook root vegetables such as carrots and burdock root in a minimum amount of water so that they end up tenderly cooked and with none of their flavour or nutritional value lost into discarded cooking water.\n\n==Ingredients==\n*250 g (½ lb) [[Cookbook:Carrot|carrot]]s, [[Cookbook:Julienne|julienned]]\n*1 Tbsp [[cookbook:Vegetable oil|vegetable oil]], preferably [[Cookbook:Sesame Oil|sesame oil]]\n*[[Cookbook:Water|Water]]\n*Tamari or shoyu [[Cookbook:Soy Sauce|soy sauce]], to taste\n\n==Procedure==\n# Cut the carrots into thin matchstick pieces (sen-giri, or [[Cookbook:Julienne|julienned]])\n# Pour a small amount of oil into a [[cookbook:saucepan|saucepan]] and [[Cookbook:Sautéing|sauté]] the carrot pieces briefly\n# Add just enough water to half-cover the carrot pieces\n# Place the lid on the pot and let the carrots [[Cookbook:Simmering|simmer]] briefly on medium-low heat\n# Add a little tamari or shoyu to enhance flavour. Serve.\n\n[[Category:Japanese recipes]]\n[[Category:Recipes using carrot]]\n[[Category:Boiled recipes]]\n[[Category:Side dish recipes]]\n[[Category:Vegan recipes]]\n[[Category:Vegetarian recipes]]\n[[Category:Recipes using vegetable oil]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "carrots, vegetable oil, water, tamari or shoyu soy sauce"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Japanese"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "Side dish"
+      },
+      "diet_tags": {
+        "source": "extracted",
+        "source_quote": "Vegan, Vegetarian"
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "absent",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

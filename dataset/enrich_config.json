@@ -1,5 +1,6 @@
 {
-  "model": "gpt-luna-low",
-  "temperature": 0.0,
-  "note": "Enrichment settings for dataset/enrich.py. temperature 0.0 maximizes reproducibility; structured outputs guarantee schema-valid responses."
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "low",
+  "temperature": null,
+  "note": "Enrichment settings for dataset/enrich.py. gpt-5.6-luna with reasoning effort 'low' is the fast/cheap tier suited to extraction; structured outputs guarantee schema-valid responses; temperature null = parameter omitted (reasoning models require the default)."
 }

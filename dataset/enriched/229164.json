@@ -1,0 +1,91 @@
+{
+  "pageid": 229164,
+  "revid": 4587410,
+  "source_revid": 4587410,
+  "title": "Cookbook:Atropellado de Coco (Coconut and Sweet Potato Dessert)",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Atropellado_de_Coco_%28Coconut_and_Sweet_Potato_Dessert%29",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Baking recipes",
+    "Mexican recipes",
+    "Recipes for dessert",
+    "Recipes using cinnamon",
+    "Recipes using coconut",
+    "Recipes using potato",
+    "Recipes using sugar"
+  ],
+  "summary": {
+    "category": "Recipes for dessert",
+    "servings": null,
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "Sweet potato",
+    "Sugar",
+    "Cinnamon",
+    "Water",
+    "Ground coconut"
+  ],
+  "ingredients": [
+    "Sweet potato",
+    "Sugar",
+    "Cinnamon",
+    "Water",
+    "Ground coconut"
+  ],
+  "ingredients_normalized": [
+    "Sweet potato",
+    "Sugar",
+    "Cinnamon",
+    "Water",
+    "Ground coconut"
+  ],
+  "steps": [
+    "Bake or steam sweet potato until soft, then mash it.",
+    "Combine sugar, cinnamon, and water over medium-low heat to make a syrup.",
+    "Combine the sweet potato mash and sugar syrup.",
+    "Mix in ground coconut until it forms a workable dough.",
+    "Form dough into balls or other shapes and serve."
+  ],
+  "description": "Atropellado de coco is a traditional Yucatecan dessert, containing coconut and sweet potato.",
+  "variant_group": "atropellado de coco",
+  "cuisine": "Yucatecan",
+  "dish_type": "dessert",
+  "diet_tags": [
+    "vegetarian",
+    "vegan"
+  ],
+  "source_text": "{{Recipe summary\n| Category = Recipes for dessert\n| Difficulty = 3\n}}\n\n{{recipe}}\n\n'''''Atropellado de coco''''' is a traditional Yucatecan dessert, containing coconut and sweet potato.\n\n== Ingredients ==\n*[[Cookbook:Sweet Potato|Sweet potato]]\n*[[Cookbook:Sugar|Sugar]]\n*[[Cookbook:Cinnamon|Cinnamon]]\n*Water\n*Ground [[Cookbook:Coconut|coconut]]\n\n== Procedure ==\n\n# Bake or steam sweet potato until soft, then mash it.\n# Combine sugar, cinnamon, and water over medium-low heat to make a syrup.\n# Combine the sweet potato mash and sugar syrup.\n# Mix in ground coconut until it forms a workable [[Cookbook:Dough|dough]].\n# Form dough into balls or other shapes and serve.\n\n[[Category:Mexican recipes]]\n[[Category:Recipes for dessert]]\n[[Category:Recipes using potato]]\n[[Category:Recipes using coconut]]\n[[Category:Baking recipes]]\n[[Category:Recipes using sugar]]\n[[Category:Recipes using cinnamon]]\n\n[[es:Artes culinarias/Recetas/Atropellado de coco]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "sweet potato, sugar, cinnamon, water, ground coconut"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Yucatecan"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "dessert"
+      },
+      "diet_tags": {
+        "source": "inferred",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "absent",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

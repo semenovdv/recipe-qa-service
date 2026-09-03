@@ -1,0 +1,100 @@
+{
+  "pageid": 441650,
+  "revid": 4526110,
+  "source_revid": 4526110,
+  "title": "Cookbook:Almond Cake",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Almond_Cake",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Recipes for cake",
+    "Recipes for dessert",
+    "Recipes using all-purpose flour",
+    "Recipes using almond",
+    "Recipes using almond flour",
+    "Recipes using butter",
+    "Recipes using egg",
+    "Recipes using granulated sugar",
+    "Recipes using powdered sugar"
+  ],
+  "summary": {
+    "category": "Cake recipes",
+    "servings": "1 cake",
+    "time_minutes": 90,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "16 Tbsp (8 oz / 227 g) unsalted butter, room temperature",
+    "1½ cups (300 g) white granulated sugar",
+    "6 ea. (300 g) standard eggs, room temperature",
+    "1 tsp vanilla extract",
+    "2 cups (300 g) almond flour or finely-ground almonds",
+    "¾ cup (105 g) all-purpose flour",
+    "Powdered sugar, for decoration"
+  ],
+  "ingredients": [
+    "(8 oz / 227 g) unsalted butter",
+    "(300 g) white granulated sugar",
+    "ea. (300 g) standard eggs",
+    "vanilla extract",
+    "(300 g) almond flour or finely-ground almonds",
+    "(105 g) all-purpose flour",
+    "Powdered sugar"
+  ],
+  "ingredients_normalized": [
+    "unsalted butter",
+    "white granulated sugar",
+    "standard eggs",
+    "vanilla extract",
+    "almond flour or finely-ground almonds",
+    "all-purpose flour",
+    "Powdered sugar"
+  ],
+  "steps": [
+    "Cream the butter and sugar on medium-high speed until light and fluffy. Scrape down the bowl to make sure everything is well-incorporated.",
+    "Whisk together the eggs and vanilla. Gradually beat the eggs into the butter-sugar mixture. If you add too much of the eggs at once, the batter may curdle.",
+    "Mix in the almond meal on low speed.",
+    "Fold the flour into the batter until it is well-incorporated. Do not over-mix the batter at this stage, as it may make the cake overly tough.",
+    "Line the bottom of an 8 or 9-inch square cake pan with parchment paper. Lightly grease the parchment and the sides of the pan.",
+    "Transfer the batter to the pan. Smooth the top.",
+    "Bake at 350°F (180°C) until golden brown, and a skewer inserted into the center comes out clean. The time will vary depending on your oven and pan size, but start checking the cake after about 30 minutes.",
+    "Cool the cake in the pan. Use a knife to loosen the sides of the cake from the pan, if necessary. Unmold the cake from the pan, and peel off the parchment if it is attached to the cake.",
+    "If desired, sprinkle the top of the cake with powdered sugar."
+  ],
+  "description": "This almond cake makes a good snack or tea cake. It has no yeast or chemical leavening, so it is important to beat a lot of air into the batter when creaming the butter and sugar.",
+  "variant_group": "almond cake",
+  "cuisine": "United States",
+  "dish_type": "cake",
+  "diet_tags": [],
+  "source_text": "{{Recipe summary\n| Category = Cake recipes\n| Origin = United States, 2010s\n| Servings = 1 cake\n| Time = 1 hour 30 minutes\n| Difficulty = 3\n}}\n\n{{Recipe}}\n\nThis '''almond cake''' makes a good snack or tea [[Cookbook:Cake|cake]]. It has no yeast or chemical leavening, so it is important to beat a lot of air into the batter when creaming the butter and sugar. \n\n== Ingredients ==\n\n* 16 [[Cookbook:Tablespoon|Tbsp]] (8 [[Cookbook:Ounce|oz]] / 227 [[Cookbook:Gram|g]]) unsalted butter, room temperature\n* 1½ [[Cookbook:Cup|cups]] (300 g) [[Cookbook:Granulated Sugar|white granulated sugar]]\n* 6 [[Cookbook:Each|ea]]. (300 g) standard [[Cookbook:Egg|eggs]], room temperature\n* 1 [[Cookbook:Teaspoon|tsp]] [[Cookbook:Vanilla|vanilla extract]]\n* 2 cups (300 g) [[Cookbook:Almond Flour|almond flour]] or finely-ground [[Cookbook:Almond|almonds]]\n* ¾ cup (105 g) [[Cookbook:All-purpose flour|all-purpose flour]]\n* [[Cookbook:Powdered Sugar|Powdered sugar]], for decoration\n\n== Procedure ==\n\n# [[Cookbook:Creaming|Cream]] the butter and sugar on medium-high speed until light and fluffy. Scrape down the bowl to make sure everything is well-incorporated.\n# Whisk together the eggs and vanilla. Gradually beat the eggs into the butter-sugar mixture. If you add too much of the eggs at once, the batter may curdle.\n# Mix in the almond meal on low speed.\n# Fold the flour into the batter until it is well-incorporated. Do not over-mix the batter at this stage, as it may make the cake overly tough.\n# Line the bottom of an 8 or 9-[[Cookbook:Inch|inch]] square [[Cookbook:Cake Pan|cake pan]] with [[Cookbook:Parchment Paper|parchment paper]]. Lightly grease the parchment and the sides of the pan.\n# Transfer the batter to the pan. Smooth the top.\n# [[Cookbook:Baking|Bake]] at 350°F (180°C) until golden brown, and a [[Cookbook:Skewer|skewer]] inserted into the center comes out clean. The time will vary depending on your oven and pan size, but start checking the cake after about 30 minutes.\n# Cool the cake in the pan. Use a knife to loosen the sides of the cake from the pan, if necessary. Unmold the cake from the pan, and peel off the parchment if it is attached to the cake.\n# If desired, sprinkle the top of the cake with powdered sugar.\n\n== Notes, tips, and variations ==\n\n* If baked in a square pan, the edges and corners of the cake can get a bit dry. You can easily slice these off and snack on them or use them for cake crumbs or a trifle.\n* If desired, add a little [[Cookbook:Almond Extract|almond extract]] to taste along with the vanilla.\n\n[[Category:Recipes for cake]]\n[[Category:Recipes for dessert]]\n[[Category:Recipes using almond]]\n[[Category:Recipes using butter]]\n[[Category:Recipes using egg]]\n[[Category:Recipes using almond flour]]\n[[Category:Recipes using granulated sugar]]\n[[Category:Recipes using powdered sugar]]\n[[Category:Recipes using all-purpose flour]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "unsalted butter, white granulated sugar, standard eggs, vanilla extract, almond flour or finely-ground almonds, all-purpose flour, powdered sugar"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "United States"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "Cake"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "source_record",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "pageid": 470518,
+  "revid": 4515587,
+  "source_revid": 4515587,
+  "title": "Cookbook:Taco Soup",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Taco_Soup",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Boiled recipes",
+    "Recipes using black bean",
+    "Recipes using cheese",
+    "Recipes using corn",
+    "Recipes using kidney bean",
+    "Recipes using pinto bean",
+    "Recipes using tomato",
+    "Recipes using turkey",
+    "Recipes using vegetable oil",
+    "Soup recipes"
+  ],
+  "summary": {
+    "category": "Soup recipes",
+    "servings": "6",
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 pound ground beef or turkey",
+    "Vegetable oil",
+    "2 cans (29 ounces) diced tomatoes",
+    "2 cans (30.5 ounces) corn kernels",
+    "2 cans (31 ounces) kidney, black, or pinto beans",
+    "1 package (1 ounce / 3 tbsp) taco mix",
+    "2 cups water",
+    "Shredded Mexican-style cheese (optional)",
+    "Tortilla chips (optional)"
+  ],
+  "ingredients": [
+    "ground beef or turkey",
+    "Vegetable oil",
+    "cans (29 ounces) diced tomatoes",
+    "cans (30.5 ounces) corn kernels",
+    "cans (31 ounces) kidney",
+    "package (1 ounce / 3 tbsp) taco mix",
+    "water",
+    "Shredded Mexican-style cheese",
+    "Tortilla chips"
+  ],
+  "ingredients_normalized": [
+    "ground beef or turkey",
+    "vegetable oil",
+    "diced tomatoes",
+    "corn kernels",
+    "kidney, black, or pinto beans",
+    "taco mix",
+    "water",
+    "shredded Mexican-style cheese",
+    "tortilla chips"
+  ],
+  "steps": [
+    "Heat a heavy skillet or pot over medium-high heat. Add a few tablespoons of vegetable oil, then the ground meat.",
+    "Break the meat up into a few large chunks, but otherwise leave it alone until it has cooked and developed some color.",
+    "Continue gradually breaking up the meat, letting it rest and brown undisturbed in between.",
+    "Remove the meat from the heat, and let the excess fat drain away.",
+    "In stock pot, combine the tomatoes, corn, beans, taco mix, water, and meat.",
+    "Bring to a boil, stirring continuously to prevent sticking. Let simmer for 15 minutes.",
+    "Ladle into bowls, and enjoy with cheese and chips if desired."
+  ],
+  "description": "This is an easy weeknight recipe for soup that uses many shelf-stable pantry essentials. == Ingredients == *1 pound ground beef or turkey *Vegetable oil *2 cans (29 ounces) diced tomatoes *2 cans (30.5 ounces) corn kernels *2 cans (31 ounces) kidney, black, or pinto beans *1 package (1 ounce / 3 tbsp) taco mix *2 cups water *Shredded Mexican-style cheese (optional) *Tortilla chips (optional)",
+  "variant_group": "taco soup",
+  "cuisine": null,
+  "dish_type": "soup",
+  "diet_tags": [],
+  "source_text": "{{recipesummary\n| category = Soup recipes\n| servings = 6\n| time = 20–30 minutes\n| difficulty = 2\n}}\n{{recipe}}\n\nThis is an easy weeknight recipe for soup that uses many shelf-stable pantry essentials.\n== Ingredients ==\n*1 [[Cookbook:Pound|pound]] ground [[Cookbook:Beef|beef]] or [[Cookbook:Turkey|turkey]]\n*Vegetable oil\n*2 cans (29 [[Cookbook:Ounce|ounces]]) diced [[Cookbook:Tomato|tomatoes]]\n*2 cans (30.5 ounces) [[Cookbook:Corn|corn]] kernels\n*2 cans (31 ounces) kidney, black, or pinto [[Cookbook:Beans|beans]]\n*1 package (1 ounce / 3 [[Cookbook:Tablespoon|tbsp]]) taco mix\n*2 [[Cookbook:Cup|cups]] [[Cookbook:Water|water]]\n*Shredded Mexican-style [[Cookbook:Cheese|cheese]] (optional)\n*[[Cookbook:Tortilla_chips|Tortilla chips]] (optional)\n\n== Procedure ==\n#Heat a heavy [[Cookbook:Frying Pan|skillet]] or pot over medium-high heat. Add a few tablespoons of vegetable oil, then the ground meat.\n#Break the meat up into a few large chunks, but otherwise leave it alone until it has cooked and developed some color.\n#Continue gradually breaking up the meat, letting it rest and brown undisturbed in between.\n#Remove the meat from the heat, and let the excess fat drain away.\n#In [[Cookbook:Stock_Pot|stock pot]], combine the tomatoes, corn, beans, taco mix, water, and meat.\n#Bring to a [[Cookbook:Boiling|boil]], stirring continuously to prevent sticking. Let [[Cookbook:Simmering|simmer]] for 15 minutes.\n#[[Cookbook:Ladle|Ladle]] into bowls, and enjoy with cheese and chips if desired.\n\n[[Category:Soup recipes]]\n[[Category:Recipes using turkey]]\n[[Category:Recipes using tomato]]\n[[Category:Recipes using corn]]\n[[Category:Boiled recipes]]\n[[Category:Recipes using pinto bean]]\n[[Category:Recipes using kidney bean]]\n[[Category:Recipes using black bean]]\n[[Category:Recipes using vegetable oil]]\n[[Category:Recipes using cheese]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "ground beef or turkey, vegetable oil, diced tomatoes, corn kernels, kidney, black, or pinto beans, taco mix, water, shredded mexican-style cheese, tortilla chips"
+      },
+      "cuisine": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "Soup"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": "The stated preparation time is a range: 20–30 minutes, so time_minutes is null."
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "pageid": 204886,
+  "revid": 4605234,
+  "source_revid": 4605234,
+  "title": "Cookbook:Baked Penne",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Baked_Penne",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Baked recipes",
+    "Italian recipes",
+    "Recipes using butter",
+    "Recipes using cream of tartar",
+    "Recipes using egg",
+    "Recipes using garlic",
+    "Recipes using low-moisture mozzarella",
+    "Recipes using pasta and noodles"
+  ],
+  "summary": {
+    "category": "Pasta recipes",
+    "servings": "4",
+    "time_minutes": 60,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 cup () uncooked penne pasta",
+    "1 cup () ricotta cheese",
+    "4 eggs, separated and brought to room temperature",
+    "¼ cup (½ stick/) unsalted butter, melted",
+    "⅛ tsp cream of tartar",
+    "1 pinch salt",
+    "¼ tsp freshly-ground black pepper",
+    "1 tsp minced garlic",
+    "1 tbsp flat-leaf parsley, finely chopped",
+    "½ cup () grated mozzarella cheese",
+    "1 ½ cups () tomato paste",
+    "4 leaves fresh basil"
+  ],
+  "ingredients": [
+    "() uncooked penne pasta",
+    "() ricotta cheese",
+    "eggs",
+    "( stick/) unsalted butter",
+    "cream of tartar",
+    "pinch salt",
+    "freshly-ground black pepper",
+    "minced garlic",
+    "flat-leaf parsley",
+    "() grated mozzarella cheese",
+    "() tomato paste",
+    "leaves fresh basil"
+  ],
+  "ingredients_normalized": [
+    "penne pasta",
+    "ricotta cheese",
+    "eggs",
+    "unsalted butter",
+    "cream of tartar",
+    "salt",
+    "black pepper",
+    "garlic",
+    "flat-leaf parsley",
+    "mozzarella cheese",
+    "tomato paste",
+    "fresh basil"
+  ],
+  "steps": [
+    "Preheat the oven to .",
+    "In a gallon of salted, boiling water, cook pasta until al dente. Drain and rinse with cold water. Set aside.",
+    "Combine ricotta, egg yolks, butter, salt, pepper, garlic, parsley, and tomato paste. Fold in cooked pasta. Set aside.",
+    "In a spotlessly clean metal bowl, beat egg whites to stiff peaks with cream of tartar. Gently fold into pasta mixture.",
+    "Pour into a parchment-lined high-sided roasting pan. Sprinkle with mozzarella cheese and cover with aluminum foil. Bake in the center of the oven for 15 minutes.",
+    "Remove foil and lower temperature to . Bake for another 30 minutes or until browned and bubbly on top.",
+    "Place serving portions onto plates and garnish with basil. Serve warm."
+  ],
+  "description": "== Ingredients == * 1 cup () uncooked penne pasta * 1 cup () ricotta cheese * 4 eggs, separated and brought to room temperature * ¼ cup (½ stick/) unsalted butter, melted * ⅛ tsp cream of tartar * 1 pinch salt * ¼ tsp freshly-ground black pepper * 1 tsp minced garlic * 1 tbsp flat-leaf parsley, finely chopped * ½ cup () grated mozzarella cheese * 1 ½ cups () tomato paste * 4 leaves fresh basil",
+  "variant_group": "baked penne",
+  "cuisine": "Italian",
+  "dish_type": "baked pasta",
+  "diet_tags": [],
+  "source_text": "{{recipesummary|category=Pasta recipes|servings=4|time=1 hour|difficulty=2\n}}{{recipe}}\n== Ingredients ==\n* 1 [[Cookbook:Cup|cup]] ({{convert|125|g|oz|abbr=on|disp=s}}) uncooked [[Cookbook:Penne|penne]] [[Cookbook:Pasta|pasta]]\n* 1 cup ({{convert|300|g|oz|abbr=on|disp=s}}) [[Cookbook:Ricotta|ricotta cheese]]\n* 4 [[Cookbook:Egg|eggs]], separated and brought to room temperature\n* ¼ cup (½ stick/{{convert|125|g|oz|abbr=on|disp=s}}) unsalted [[Cookbook:Butter|butter]], melted\n* ⅛ [[Cookbook:Teaspoon|tsp]] [[Cookbook:Cream of Tartar|cream of tartar]]\n* 1 [[Cookbook:Pinch|pinch]] salt\n* ¼ tsp freshly-ground [[Cookbook:Pepper|black pepper]]\n* 1 tsp [[Cookbook:Mincing|minced]] [[Cookbook:Garlic|garlic]]\n* 1 tbsp flat-leaf [[Cookbook:Parsley|parsley]], finely [[Cookbook:Chopping|chopped]]\n* ½ cup ({{convert|60|g|oz|abbr=on|disp=s}}) grated [[Cookbook:Mozzarella Cheese|mozzarella cheese]]\n* 1 ½ cups ({{convert|400|g|oz|abbr=on|disp=s}}) [[Cookbook:Tomato Paste|tomato paste]]\n* 4 leaves fresh [[Cookbook:Basil|basil]]\n\n== Procedure ==\n#Preheat the oven to {{convert|375|F|C}}.\n#In a gallon of salted, boiling water, cook pasta until [[Cookbook:Al Dente|al dente]]. Drain and rinse with cold water. Set aside.\n#Combine ricotta, egg yolks, butter, salt, pepper, garlic, parsley, and tomato paste. Fold in cooked pasta. Set aside.\n#In a spotlessly clean metal bowl, beat egg whites to stiff peaks with cream of tartar. Gently fold into pasta mixture.\n#Pour into a [[Cookbook:Parchment Paper|parchment]]-lined high-sided roasting pan. Sprinkle with mozzarella cheese and cover with [[Cookbook:Aluminium Foil|aluminum foil]]. [[Cookbook:Baking|Bake]] in the center of the [[Cookbook:Oven|oven]] for 15 minutes.\n#Remove foil and lower temperature to {{convert|350|F|C}}. Bake for another 30 minutes or until browned and bubbly on top.\n#Place serving portions onto plates and garnish with basil. Serve warm.\n\n[[Category:Baked recipes]]\n[[Category:Recipes using garlic]]\n[[Category:Italian recipes]] \n[[Category:Recipes using pasta and noodles]]\n[[Category:Recipes using egg]]\n[[Category:Recipes using butter]]\n[[Category:Recipes using cream of tartar]]\n[[Category:Recipes using low-moisture mozzarella]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "penne pasta, ricotta cheese, eggs, unsalted butter, cream of tartar, salt, black pepper, garlic, flat-leaf parsley, mozzarella cheese, tomato paste, fresh basil"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Italian"
+      },
+      "dish_type": {
+        "source": "inferred",
+        "source_quote": null
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "source_record",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

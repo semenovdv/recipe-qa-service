@@ -77,8 +77,9 @@ dataset/
     ├── manifest.json  # pageid -> revid pinning exact revisions
     └── eda_report.json# EDA: selection-signal decision
 
-enriched/            # committed derived layer (git-tracked, optional)
-    └── <pageid>.json # corpus record + LLM-normalized fields + provenance
+enriched/            # committed derived layer (git-tracked, production data)
+    ├── <pageid>.json # corpus record + LLM-normalized fields + provenance
+    └── report.json   # enrichment run summary: coverage + provenance counts
 ```
 
 ## How to build
@@ -101,9 +102,10 @@ any machine reproduces the same corpus.
 
 ## LLM enrichment (optional derived layer)
 
-`dataset/enrich.py` runs each corpus record through **gpt-luna-low** with
-**Structured Outputs** and writes `dataset/enriched/<pageid>.json` — a derived
-layer on top of `corpus/`, which stays untouched:
+`dataset/enrich.py` runs each corpus record through **gpt-5.6-luna** (reasoning
+effort `low`, the fast/cheap tier) with **Structured Outputs** and writes
+`dataset/enriched/<pageid>.json` — a derived layer on top of `corpus/`, which
+stays untouched:
 
 ```bash
 export OPENAI_API_KEY=sk-…                            # required for `run`
@@ -129,8 +131,11 @@ already knew it, `dropped` = rejected by a code-side guard).
 - The base corpus is reproducible from the ingestion script alone (CORP-09/11);
   enrichment is a separate, auditable derived layer, so reproducibility is
   unaffected.
-- Model temperature is 0.0; responses are schema-constrained via Structured
-  Outputs, so re-runs are near-deterministic (provenance records the model).
+- Model settings live in `enrich_config.json` (`gpt-5.6-luna`, reasoning
+  effort `low`); responses are schema-constrained via Structured Outputs.
+  `run` is resumable: already-enriched records are skipped unless their file
+  is deleted. `enriched/report.json` records coverage and provenance counts
+  for the committed run.
 
 ## Non-goals
 

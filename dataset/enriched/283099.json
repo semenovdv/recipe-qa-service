@@ -1,0 +1,72 @@
+{
+  "pageid": 283099,
+  "revid": 4587419,
+  "source_revid": 4587419,
+  "title": "Cookbook:Affogato",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Affogato",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Italian recipes",
+    "Recipes for dessert",
+    "Recipes using brewed coffee",
+    "Recipes using ice cream"
+  ],
+  "summary": {
+    "category": "Recipes for dessert",
+    "servings": "1",
+    "time_minutes": 10,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 scoop gelato, typically vanilla",
+    "1–2 shots espresso, or one long pull shot"
+  ],
+  "ingredients": [
+    "scoop gelato",
+    "shots espresso"
+  ],
+  "ingredients_normalized": [
+    "gelato",
+    "espresso"
+  ],
+  "steps": [
+    "Either pour espresso over gelato and serve, or serve them side by side for diner to mix at the table."
+  ],
+  "description": "Affogato, or \"affogato al caffe\", is an Italian preparation consisting of gelato or ice cream topped with espresso.",
+  "variant_group": "affogato",
+  "cuisine": "Italian",
+  "dish_type": "dessert",
+  "diet_tags": [],
+  "source_text": "__NOTOC__\n{{recipesummary\n| category = Recipes for dessert\n| Cuisine = Italian\n| servings = 1\n| time = 10 minutes\n| difficulty = 1\n| image = [[File:Affogato.JPG|300px]]|\n}}{{recipe}}\n\n'''Affogato''', or \"affogato al caffe\", is an Italian preparation consisting of [[Cookbook:Gelato|gelato]] or [[Cookbook:Ice Cream|ice cream]] topped with [[Cookbook:Coffee#Espresso|espresso]].<ref>{{Cite web |last=Nolan |first=Greg |date=2018-04-26 |title=An Introduction to Affogato (Recipes and Tips) |url=https://ineedcoffee.com/an-introduction-to-affogato-recipes-and-tips/ |access-date=2023-10-21 |website=I Need Coffee |language=en-US}}</ref>\n\n== Ingredients ==\n* 1 scoop [[Cookbook:Gelato|gelato]], typically [[Cookbook:Vanilla|vanilla]]\n* 1–2 shots [[Cookbook:Coffee#Espresso|espresso]], or one long pull shot\n\n== Procedure ==\n# Either pour espresso over gelato and serve, or serve them side by side for diner to mix at the table.\n\n== References ==\n[[Category:Italian recipes]]\n[[Category:Recipes for dessert]]\n[[Category:Recipes using ice cream]]\n[[Category:Recipes using brewed coffee]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "gelato, espresso"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Italian"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "dessert"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "source_record",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

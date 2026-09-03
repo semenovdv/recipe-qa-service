@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "model": "gpt-5.6-luna (reasoning_effort=low, structured outputs, temp omitted)",
+  "base_corpus_version": "45af1c982923952a",
+  "records": 49,
+  "field_coverage": {
+    "servings": {
+      "corpus": 29,
+      "enriched": 29
+    },
+    "time_minutes": {
+      "corpus": 22,
+      "enriched": 22
+    },
+    "cuisine": 41,
+    "dish_type": 47,
+    "diet_tags": 18
+  },
+  "provenance_counts": {
+    "cuisine:absent": 8,
+    "cuisine:extracted": 40,
+    "cuisine:inferred": 1,
+    "diet_tags:absent": 31,
+    "diet_tags:extracted": 17,
+    "diet_tags:inferred": 1,
+    "dish_type:absent": 2,
+    "dish_type:extracted": 43,
+    "dish_type:inferred": 4,
+    "ingredients_normalized:extracted": 41,
+    "ingredients_normalized:inferred": 7,
+    "ingredients_normalized:source_record": 1,
+    "servings:absent": 20,
+    "servings:source_record": 29,
+    "time_minutes:absent": 27,
+    "time_minutes:source_record": 22
+  },
+  "guards": {
+    "time_minutes_never_inferred": true,
+    "time_extraction_requires_deterministic_evidence_parse": true,
+    "existing_deterministic_values_never_downgraded": true
+  }
+}

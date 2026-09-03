@@ -1,0 +1,105 @@
+{
+  "pageid": 24098,
+  "revid": 4536311,
+  "source_revid": 4536311,
+  "title": "Cookbook:Agedashi Tofu",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Agedashi_Tofu",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Deep fried recipes",
+    "Japanese recipes",
+    "Recipes using cornstarch",
+    "Recipes using fresh ginger",
+    "Recipes using mirin",
+    "Recipes using tofu",
+    "Recipes using white radish",
+    "Recipes with images",
+    "Recipes with metric units"
+  ],
+  "summary": {
+    "category": null,
+    "servings": null,
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "4–6 oz (~115–170 g) soft tofu",
+    "Potato starch or corn starch",
+    "Oil for deep frying",
+    "½ cup (120 ml) dashi",
+    "2 Tbsp (30 ml) light soy sauce",
+    "1½ Tbsp (22.5 ml) mirin",
+    "Green onions, thinly sliced",
+    "Grated ginger",
+    "Grated daikon (white radish)"
+  ],
+  "ingredients": [
+    "(~115–170 g) soft tofu",
+    "Potato starch or corn starch",
+    "Oil for deep frying",
+    "(120 ml) dashi",
+    "(30 ml) light soy sauce",
+    "(22.5 ml) mirin",
+    "Green onions",
+    "Grated ginger",
+    "Grated daikon"
+  ],
+  "ingredients_normalized": [
+    "soft tofu",
+    "potato starch or corn starch",
+    "oil",
+    "dashi",
+    "light soy sauce",
+    "mirin",
+    "green onions",
+    "grated ginger",
+    "grated daikon"
+  ],
+  "steps": [
+    "Cut the soft tofu into rectangular pieces about 1 inch thick.",
+    "Arrange the layers on rack with paper towels and leave for 10–15 minutes to drain. Change the paper and turn over the slices.",
+    "In pan, mix sauce ingredients, and heat in a pan until boiling. Turn off the heat.",
+    "Sprinkle starch on a plate. Arrange the tofu slices on it. Sprinkle more starch over the tofu.",
+    "Heat the oil to 355°F (180°C) for deep frying.",
+    "Pat any excess starch off the tofu slices and slide them into the hot oil, one by one. Don't add too many slices at once, because the tofu lowers the oil temperature. Fry until golden, turning once.",
+    "Remove and drain on paper towels.",
+    "Arrange the tofu in a dish, and pour the sauce over top. Top with a mound of grated daikon (radish), a bit of grated ginger, and sliced green onions."
+  ],
+  "description": "Agedashi tofu (or agedashi dofu) &#25562;&#12370;&#20986;&#12375;&#35910;&#33104; is a simple Japanese way to serve hot tofu. Silken (kinugoshi) firm tofu, cut into cubes, is lightly dusted with potato starch or cornstarch and then deep fried until golden brown. It's then served in a hot tentsuyu broth made of dashi, mirin, and shoyu (Japanese soy sauce), and topped with finely chopped green onions or grated daikon. It is eaten with chopsticks.",
+  "variant_group": "agedashi tofu",
+  "cuisine": "Japanese",
+  "dish_type": "deep-fried tofu",
+  "diet_tags": [],
+  "source_text": "__NOTOC__\n{{Recipe summary\n| Cuisine = Japanese\n| Difficulty = 3\n| Image = [[File:Agedashi.jpg|300px]]\n}}\n\n{{recipe}}\n\n'''Agedashi tofu''' (or '''''agedashi dofu''''') &#25562;&#12370;&#20986;&#12375;&#35910;&#33104;  is a simple [[Cookbook:Cuisine of Japan|Japanese]] way to serve hot tofu. Silken (''kinugoshi'') firm tofu, cut into cubes, is lightly dusted with potato starch or cornstarch and then [[Cookbook:Deep Fat Frying|deep fried]] until golden brown. It's then served in a hot tentsuyu broth made of dashi, mirin, and shoyu (Japanese soy sauce), and topped with finely chopped green onions or grated daikon. It is eaten with chopsticks.\n\n==Ingredients==\n* 4–6 [[Cookbook:Ounce|oz]] (~115–170 [[Cookbook:Gram|g]]) soft [[Cookbook:Tofu|tofu]]\n* [[Cookbook:Potato Starch|Potato starch]] or [[Cookbook:Cornstarch|corn starch]]\n* [[Cookbook:Oil|Oil]] for [[Cookbook:Deep frying|deep frying]]\n\n====== Sauce ======\n* ½ [[Cookbook:Cup|cup]] (120 [[Cookbook:Milliliter|ml]]) [[Cookbook:Dashi|dashi]]\n* 2 [[Cookbook:Tablespoon|Tbsp]] (30 ml) [[Cookbook:Soy Sauce|light soy sauce]]\n* 1½ Tbsp (22.5 ml) [[Cookbook:Mirin|mirin]]\n\n====== Condiments ======\n* [[Cookbook:Green onion|Green onion]]s, thinly [[Cookbook:Slicing|sliced]]\n* [[Cookbook:Grater|Grated]] [[Cookbook:Ginger|ginger]]\n* Grated [[Cookbook:Daikon|daikon]] (white radish)\n\n==Procedure==\n\n# Cut the soft tofu into rectangular pieces about 1 [[Cookbook:Inch|inch]] thick.\n# Arrange the layers on rack with paper towels and leave for 10–15 minutes to drain. Change the paper and turn over the slices.\n# In pan, mix sauce ingredients, and heat in a pan until [[Cookbook:Boiling|boiling]]. Turn off the heat.\n# Sprinkle starch on a plate. Arrange the tofu slices on it. Sprinkle more starch over the tofu.\n# Heat the oil to 355°F (180°C) for [[Cookbook:Deep Fat Frying|deep frying]].\n# Pat any excess starch off the tofu slices and slide them into the hot oil, one by one. Don't add too many slices at once, because the tofu lowers the oil temperature. Fry until golden, turning once.\n# Remove and drain on [[Cookbook:Paper Towel|paper towels]].\n# Arrange the tofu in a dish, and pour the sauce over top. Top with a mound of grated daikon (radish), a bit of grated ginger, and sliced green onions.\n\n[[Category:Recipes using tofu]]\n[[Category:Japanese recipes]]\n[[Category:Deep fried recipes]]\n[[Category:Recipes with metric units]]\n[[Category:Recipes with images]]\n[[Category:Recipes using cornstarch]]\n[[Category:Recipes using white radish]]\n[[Category:Recipes using fresh ginger]]\n[[Category:Recipes using mirin]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "soft tofu, potato starch or corn starch, oil, dashi, light soy sauce, mirin, green onions, grated ginger, grated daikon"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Japanese"
+      },
+      "dish_type": {
+        "source": "inferred",
+        "source_quote": null
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "absent",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

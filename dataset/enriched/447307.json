@@ -1,0 +1,104 @@
+{
+  "pageid": 447307,
+  "revid": 4518341,
+  "source_revid": 4518341,
+  "title": "Cookbook:Ager Soup",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Ager_Soup",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Recipes",
+    "Recipes for soup",
+    "Recipes using beef",
+    "Recipes using fish",
+    "Recipes using iru",
+    "Recipes using pepper",
+    "Recipes using salt",
+    "Recipes using tomato",
+    "Tiv recipes",
+    "Vegetarian recipes"
+  ],
+  "summary": {
+    "category": "Soup recipes",
+    "servings": "2–3",
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "1 cup fresh ager leaves",
+    "2 tablespoons palm oil",
+    "0.4 kg beef, rinsed",
+    "1 smoke-dried catfish, rinsed",
+    "2 teaspoons nune (locust bean cake)",
+    "1 Maggi cube",
+    "3 fresh bell peppers, blended",
+    "5 medium tomatoes, blended",
+    "1 teaspoon salt or to taste"
+  ],
+  "ingredients": [
+    "fresh ager leaves",
+    "palm oil",
+    "kg beef",
+    "smoke-dried catfish",
+    "nune",
+    "Maggi cube",
+    "fresh bell peppers",
+    "medium tomatoes",
+    "salt or to taste"
+  ],
+  "ingredients_normalized": [
+    "ager leaves",
+    "palm oil",
+    "beef",
+    "smoke-dried catfish",
+    "nune (locust bean cake)",
+    "Maggi cube",
+    "bell peppers",
+    "tomatoes",
+    "salt"
+  ],
+  "steps": [
+    "Scrape off the white flaky skin of the ager stalk. Pound gently for a few minutes to remove the ager pulp.",
+    "Squeeze the pulp in a small amount of water to extract the slippery juice. Sieve this product to separate the juice from the fibres.",
+    "Heat a little water in a pot, and add the ager juice.",
+    "Add the palm oil, blended pepper, blended tomato, beef, and fish. Cook for few minutes, stirring continuously until an elastic consistency is achieved.",
+    "Add nune, maggi cubes, and salt to taste.",
+    "Serve with swallows as desired."
+  ],
+  "description": "Ager soup is a typical Nigerian draw soup prepared from the pulp obtained from ager tree. It is commonly consumed by the Tiv people.",
+  "variant_group": "ager soup",
+  "cuisine": "Nigerian",
+  "dish_type": "soup",
+  "diet_tags": [],
+  "source_text": "{{Recipe summary\n| Category = Soup recipes\n| Servings = 2–3\n| Difficulty = 2\n}}\n\n{{Recipe}}\n\n'''Ager soup''' is a typical Nigerian draw [[Cookbook:Soup|soup]] prepared from the pulp obtained from [[Cookbook:Ager|ager]] tree. It is commonly consumed by the Tiv people.\n\n==Ingredients==\n*1 cup fresh [[Cookbook:Ager|ager]] leaves\n*2 [[Cookbook:Tablespoon|tablespoons]] [[Cookbook:Palm Oil|palm oil]]\n*0.4 [[Cookbook:Kilogram|kg]] [[Cookbook:Beef|beef]], rinsed\n*1 [[Cookbook:Dryfish|smoke-dried catfish]], rinsed\n*2 [[Cookbook:Teaspoon|teaspoons]] [[Cookbook:Iru|nune (locust bean cake)]]\n*1 [[Cookbook:Dehydrated Broth|Maggi cube]]\n*3 fresh [[Cookbook:Bell Pepper|bell peppers]], [[Cookbook:Puréeing|blended]]\n*5 medium [[Cookbook:Tomato|tomatoes]], blended\n*1 [[Cookbook: Teaspoon|teaspoon]] [[Cookbook:Salt|salt]] or to taste\n\n==Procedure==\n# Scrape off the white flaky skin of the ager stalk. Pound gently for a few minutes to remove the ager pulp.\n# Squeeze the pulp in a small amount of water to extract the slippery juice. [[Cookbook: Sieve|Sieve]] this product to separate the juice from the fibres.\n# Heat a little water in a pot, and add the ager juice.\n#Add the palm oil, blended pepper, blended tomato, beef, and fish. Cook for few minutes, stirring continuously until an elastic consistency is achieved.\n#Add nune, maggi cubes, and salt to taste.\n#Serve with [[Cookbook:Swallow|swallows]] as desired.\n\n[[Category:Tiv recipes]]\n[[Category:Recipes for soup]]\n[[Category:Recipes using beef]]\n[[Category:Vegetarian recipes]]\n[[Category:Recipes]]\n[[Category:Recipes using pepper]]\n[[Category:Recipes using fish]]\n[[Category:Recipes using salt]]\n[[Category:Recipes using tomato]]\n[[Category:Recipes using iru]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "ager leaves, palm oil, beef, smoke-dried catfish, nune (locust bean cake), maggi cube, bell peppers, tomatoes, salt"
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Nigerian"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "Soup"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

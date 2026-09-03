@@ -1,0 +1,92 @@
+{
+  "pageid": 18236,
+  "revid": 4510891,
+  "source_revid": 4510891,
+  "title": "Cookbook:Tarator (Bulgarian Cucumber Soup)",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Tarator_%28Bulgarian_Cucumber_Soup%29",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Recipes using cucumber",
+    "Recipes using dill",
+    "Recipes using yogurt",
+    "Recipes_with_metric_units",
+    "Soup recipes"
+  ],
+  "summary": {
+    "category": "Soup recipes",
+    "servings": null,
+    "time_minutes": null,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "500 g plain yogurt",
+    "1 cup (240 ml) water",
+    "1–2 cucumbers, diced (diced is far better than grated, although at many restaurants they grate them)",
+    "A couple of spoonfuls chopped dill",
+    "Salt, to taste",
+    "Vinegar, to taste",
+    "Oil, to taste",
+    "A couple of spoonfuls chopped walnuts (optional)"
+  ],
+  "ingredients": [
+    "plain yogurt",
+    "(240 ml) water",
+    "cucumbers",
+    "A couple of spoonfuls chopped dill",
+    "Salt",
+    "Vinegar",
+    "Oil",
+    "A couple of spoonfuls chopped walnuts"
+  ],
+  "ingredients_normalized": [
+    "plain yogurt",
+    "water",
+    "cucumbers",
+    "chopped dill",
+    "salt",
+    "vinegar",
+    "oil",
+    "chopped walnuts"
+  ],
+  "steps": [
+    "Mix all the ingredients, using enough water so the soup is about the consistency of milk",
+    "Serve cold in a soup dish, adding a couple ice cubes if it's not cold."
+  ],
+  "description": "== Ingredients == * 500 g plain yogurt * 1 cup (240 ml) water * 1–2 cucumbers, diced (diced is far better than grated, although at many restaurants they grate them) * A couple of spoonfuls chopped dill * Salt, to taste * Vinegar, to taste * Oil, to taste * A couple of spoonfuls chopped walnuts (optional)",
+  "variant_group": "tarator",
+  "cuisine": null,
+  "dish_type": "soup",
+  "diet_tags": [],
+  "source_text": "{{Recipe summary\n| Category = Soup recipes\n| Difficulty = 1\n}}\n\n{{recipe}}\n\n== Ingredients ==\n* 500 [[Cookbook:Gram|g]] plain [[Cookbook:Yogurt|yogurt]]\n* 1 [[Cookbook:Cup|cup]] (240 [[Cookbook:Milliliter|ml]]) water\n* 1–2 [[Cookbook:Cucumber|cucumbers]], diced (diced is far better than grated, although at many restaurants they grate them) \n* A couple of spoonfuls [[Cookbook:Chopping|chopped]] [[Cookbook:Dill|dill]]\n* [[Cookbook:Salt|Salt]], to taste \n* [[Cookbook:Vinegar|Vinegar]], to taste \n* [[Cookbook:Oil and Fat|Oil]], to taste \n* A couple of spoonfuls chopped [[Cookbook:Walnut|walnuts]] (optional) \n\n== Procedure ==\n# Mix all the ingredients, using enough water so the soup is about the consistency of milk\n# Serve cold in a soup dish, adding a couple ice cubes if it's not cold.\n\n== Notes, tips, and variations ==\n\n* If you use all of the above ingredients without the water and strain the yogurt until it becomes half in volume, you can make a salad. It is referred to as ''snezhanka'' (Snow White) or ''mlechna salata'' (yogurt salad). The main difference is that people traditionally use pickles/gherkins for ''snezhanka'' and fresh cucumbers for ''mlechna salata''.\n\n[[Category:Soup recipes]]\n[[Category:Recipes using yogurt]]\n[[Category:Recipes using cucumber]]\n[[Category:Recipes using dill]]\n[[Category:Recipes_with_metric_units]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "extracted",
+        "source_quote": "plain yogurt, water, cucumbers, chopped dill, salt, vinegar, oil, chopped walnuts"
+      },
+      "cuisine": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "Soup"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "absent",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}

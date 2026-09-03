@@ -340,13 +340,16 @@ def make_enriched_record(
                       if servings_source == "extracted" else None)
 
     # --- ingredients -------------------------------------------------------
-    # extracted only when every normalized name is verbatim in the source;
-    # otherwise keep the LLM list but tag it honestly as inferred.
+    # extracted only when every normalized name appears in the markup-stripped
+    # raw ingredient lines (comparing against wikitext would force "inferred"
+    # even for faithful extractions, since clean names cannot match "[[...]]"
+    # markup verbatim). Otherwise keep the LLM list, tagged honestly.
     ingredients_value = record["ingredients"]
     ingredients_source = "source_record"
     ingredients_quote = None
+    raw_lines = "\n".join(record["ingredients_raw"]).lower()
     if clean["ingredients_normalized"]:
-        quotes = [_matched_quote(item, windows["ingredients_normalized"])
+        quotes = [_matched_quote(item, raw_lines)
                   for item in clean["ingredients_normalized"]]
         if all(quotes):
             ingredients_value = clean["ingredients_normalized"]
@@ -516,20 +519,30 @@ def validate_enriched(record: dict[str, Any]) -> list[str]:
 def enrich_record_via_api(
     record: dict[str, Any],
     model: str,
-    temperature: float = DEFAULT_TEMPERATURE,
+    temperature: float | None = DEFAULT_TEMPERATURE,
+    reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
-    """Call the model with structured outputs and merge the result."""
+    """Call the model with structured outputs and merge the result.
+
+    Reasoning models (gpt-5.x family) reject ``temperature`` and use
+    ``max_completion_tokens`` instead of ``max_tokens``; ``temperature=None``
+    means the parameter is omitted.
+    """
     from openai import OpenAI  # imported lazily: offline tests never need it
 
     client = OpenAI()  # reads OPENAI_API_KEY
     messages = build_messages(record, derived_fields(record))
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,  # type: ignore[arg-type]
-        temperature=temperature,
-        max_tokens=MAX_OUTPUT_TOKENS,
-        response_format={"type": "json_schema", "json_schema": response_schema()},
-    )
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "max_completion_tokens": MAX_OUTPUT_TOKENS,
+        "response_format": {"type": "json_schema", "json_schema": response_schema()},
+    }
+    if temperature is not None:
+        kwargs["temperature"] = temperature
+    if reasoning_effort is not None:
+        kwargs["reasoning_effort"] = reasoning_effort
+    response = client.chat.completions.create(**kwargs)
     raw = response.choices[0].message.content or "{}"
     payload = json.loads(raw)
     return make_enriched_record(record, payload, model)
@@ -573,7 +586,12 @@ def _cmd_plan() -> int:
     return 0
 
 
-def _cmd_run(model: str, temperature: float, only_pageid: int | None) -> int:
+def _cmd_run(
+    model: str,
+    temperature: float | None,
+    reasoning_effort: str | None,
+    only_pageid: int | None,
+) -> int:
     records = _load_corpus()
     if only_pageid is not None:
         if only_pageid not in records:
@@ -582,13 +600,19 @@ def _cmd_run(model: str, temperature: float, only_pageid: int | None) -> int:
         records = {only_pageid: records[only_pageid]}
 
     ENRICHED_DIR.mkdir(exist_ok=True)
+    # resume support: skip records already enriched (delete the file to re-run)
+    todo = {pid: rec for pid, rec in records.items()
+            if only_pageid is not None
+            or not (ENRICHED_DIR / f"{pid}.json").exists()}
     failures = 0
-    for index, (pageid, record) in enumerate(sorted(records.items()), start=1):
-        print(f"[{index}/{len(records)}] {record['title']} …", flush=True)
+    for index, (pageid, record) in enumerate(sorted(todo.items()), start=1):
+        print(f"[{index}/{len(todo)}] {record['title']} …", flush=True)
         enriched: dict[str, Any] | None = None
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                enriched = enrich_record_via_api(record, model, temperature)
+                enriched = enrich_record_via_api(
+                    record, model, temperature, reasoning_effort
+                )
                 break
             except Exception as exc:  # noqa: BLE001 — log, backoff, retry
                 print(f"    attempt {attempt} failed: {exc}", flush=True)
@@ -619,7 +643,7 @@ def _cmd_run(model: str, temperature: float, only_pageid: int | None) -> int:
         print(f"\n{failures} record(s) failed; enriched layer is incomplete.",
               file=sys.stderr)
         return 1
-    print(f"\nDone: {len(records)} record(s) enriched into {ENRICHED_DIR}")
+    print(f"\nDone: {len(todo)} record(s) enriched into {ENRICHED_DIR}")
     return 0
 
 
@@ -628,7 +652,8 @@ def _cmd_validate() -> int:
         print("no enriched/ layer yet — run `python -m dataset.enrich run` first")
         return 1
     errors_total = 0
-    paths = sorted(ENRICHED_DIR.glob("*.json"))
+    # records are <pageid>.json; report.json and other non-record files are skipped
+    paths = sorted(p for p in ENRICHED_DIR.glob("*.json") if p.stem.isdigit())
     for path in paths:
         record = json.loads(path.read_text(encoding="utf-8"))
         for error in validate_enriched(record):
@@ -651,11 +676,13 @@ def main(argv: list[str] | None = None) -> int:
     config = _load_config()
     model = getattr(args, "model", None) or config.get("model", DEFAULT_MODEL)
     temperature = config.get("temperature", DEFAULT_TEMPERATURE)
+    reasoning_effort = config.get("reasoning_effort")
 
     if args.command == "plan":
         return _cmd_plan()
     if args.command == "run":
-        return _cmd_run(model, temperature, getattr(args, "record", None))
+        return _cmd_run(model, temperature, reasoning_effort,
+                        getattr(args, "record", None))
     if args.command == "validate":
         return _cmd_validate()
     return 2

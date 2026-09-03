@@ -1,0 +1,95 @@
+{
+  "pageid": 161251,
+  "revid": 4525803,
+  "source_revid": 4525803,
+  "title": "Cookbook:Agnolotti Pasta Soup (Agnolotti in Brodo)",
+  "url": "https://en.wikibooks.org/wiki/Cookbook:Agnolotti_Pasta_Soup_%28Agnolotti_in_Brodo%29",
+  "fetched_at": "2026-09-02T21:01:29Z",
+  "categories": [
+    "Boiled recipes",
+    "Italian recipes",
+    "Recipes for soup",
+    "Recipes using chicken broth and stock",
+    "Recipes using dehydrated broth",
+    "Recipes using light cream",
+    "Recipes using pasta and noodles",
+    "Recipes with metric units"
+  ],
+  "summary": {
+    "category": "Very Easy recipes",
+    "servings": "2",
+    "time_minutes": 15,
+    "rating": null
+  },
+  "ingredients_raw": [
+    "250 grams (8–9 ounces) of agnolotti or other small ravioli-type pasta",
+    "½ litre (2 cups) of chicken broth (canned or homemade) or ½ litre of water and 2 good-quality chicken stock cubes",
+    "½ cup of single (light) cream",
+    "1 pinch of ground black pepper",
+    "1 handful of chopped flat-leaf parsley",
+    "1 dash (you decide how big or small) of sweet sherry",
+    "Freshly-grated Parmesan cheese (Parmigiano-Reggiano) for garnish"
+  ],
+  "ingredients": [
+    "(8–9 ounces) of agnolotti or other small ravioli-type pasta",
+    "litre (2 cups) of chicken broth (canned or homemade) or litre of water and 2 good-quality chicken stock cubes",
+    "of single (light) cream",
+    "pinch of ground black pepper",
+    "handful of chopped flat-leaf parsley",
+    "dash (you decide how big or small) of sweet sherry",
+    "Freshly-grated Parmesan cheese (Parmigiano-Reggiano) for garnish"
+  ],
+  "ingredients_normalized": [
+    "agnolotti or other small ravioli-type pasta",
+    "chicken broth or water and chicken stock cubes",
+    "single (light) cream",
+    "ground black pepper",
+    "flat-leaf parsley",
+    "sweet sherry",
+    "Parmesan cheese (Parmigiano-Reggiano)"
+  ],
+  "steps": [
+    "Bring the chicken broth to a rolling boil. If using water and chicken stock cubes, bring the water to a boil, add the stock cubes and let dissolve.",
+    "Add the agnolotti and cook according to the instructions on the package.",
+    "Add the cream, freshly-ground black pepper, and chopped parsley about 2 minutes before the end of the cooking, and turn down the heat.",
+    "Add the dash of sherry just before serving. If serving to children, dish out their portions first, then add the sherry for the grown-ups.",
+    "Let stand for a few minutes to marry the flavors, then serve, sprinkled with grated Parmesan cheese and enjoy."
+  ],
+  "description": "Agnolotti in brodo is a very simple and delicious Italian pasta soup containing agnolotti, small ravioli filled most commonly with meat. This soup is delicious on a cold day when you haven't much time to devote to preparing a tasty meal. It is best served with some homemade garlic bread and a healthy salad.",
+  "variant_group": "agnolotti pasta soup",
+  "cuisine": "Italian",
+  "dish_type": "soup",
+  "diet_tags": [],
+  "source_text": "__NOTOC__\n{{recipesummary\n| category = Very Easy recipes\n| Cuisine = Italian\n| servings = 2\n| time = 15 minutes\n| difficulty = 2\n}}\n{{recipe}}\n\n'''''Agnolotti in brodo''''' is a very simple and delicious Italian pasta soup containing ''agnolotti'', small [[Cookbook:Ravioli|ravioli]] filled most commonly with meat. This soup is delicious on a cold day when you haven't much time to devote to preparing a tasty meal. It is best served with some homemade garlic bread and a healthy salad.\n\n==Ingredients==\n*250 [[Cookbook:Gram|grams]] (8–9 [[Cookbook:Ounce|ounces]]) of ''agnolotti'' or other small ravioli-type [[Cookbook:Pasta|pasta]]\n*½ [[Cookbook:Liter|litre]] (2 [[Cookbook:Cup|cups]]) of [[Cookbook:Chicken Broth|chicken broth]] (canned or homemade) '''or''' ½ litre of water and 2 good-quality chicken [[Cookbook:Dehydrated Broth|stock cubes]]\n*½ cup of single (light) [[Cookbook:Cream|cream]]\n*1 [[Cookbook:Pinch|pinch]] of ground [[Cookbook:Black Pepper|black pepper]]\n*1 handful of [[Cookbook:Chopping|chopped]] flat-leaf [[Cookbook:Parsley|parsley]]\n*1 dash (you decide how big or small) of sweet [[Cookbook:Sherry|sherry]]\n*Freshly-grated [[Cookbook:Parmesan Cheese|Parmesan cheese]] (Parmigiano-Reggiano) for garnish\n\n==Procedure==\n#Bring the chicken broth to a rolling [[Cookbook:Boiling|boil]]. If using water and chicken stock cubes, bring the water to a boil, add the stock cubes and let dissolve.\n#Add the ''agnolotti'' and cook according to the instructions on the package.\n#Add the cream, freshly-ground black pepper, and chopped parsley about 2 minutes before the end of the cooking, and turn down the heat.\n#Add the dash of sherry just before serving. If serving to children, dish out their portions first, then add the sherry for the grown-ups.\n#Let stand for a few minutes to marry the flavors, then serve, sprinkled with grated Parmesan cheese and enjoy.\n\n[[Category:Recipes using pasta and noodles]]\n[[Category:Recipes for soup]]\n[[Category:Boiled recipes]]\n[[Category:Italian recipes]]\n[[Category:Recipes with metric units]]\n[[Category:Recipes using light cream]]\n[[Category:Recipes using dehydrated broth]]\n[[Category:Recipes using chicken broth and stock]]",
+  "enrichment": {
+    "model": "gpt-5.6-luna",
+    "schema_version": 1,
+    "provenance": {
+      "ingredients_normalized": {
+        "source": "inferred",
+        "source_quote": null
+      },
+      "cuisine": {
+        "source": "extracted",
+        "source_quote": "Italian"
+      },
+      "dish_type": {
+        "source": "extracted",
+        "source_quote": "soup"
+      },
+      "diet_tags": {
+        "source": "absent",
+        "source_quote": null
+      },
+      "time_minutes": {
+        "source": "source_record",
+        "source_quote": null
+      },
+      "servings": {
+        "source": "source_record",
+        "source_quote": null
+      }
+    },
+    "notes": null
+  }
+}
