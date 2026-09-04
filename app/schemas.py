@@ -17,6 +17,19 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # The three public refusal reasons (SPEC §7.1 enum).
 RefusalReason = Literal["out_of_corpus", "out_of_domain", "safety"]
+TraceStatus = Literal["pending", "running", "complete", "skipped", "failed"]
+
+
+class TraceStep(BaseModel):
+    """Safe, payload-free timing information for one pipeline stage."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    key: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    status: TraceStatus
+    duration_ms: int | None = Field(default=None, ge=0)
+    detail: str = ""
 
 
 class Citation(BaseModel):
@@ -40,6 +53,7 @@ class AskResponse(BaseModel):
     citations: list[Citation]
     refused: bool
     refusal_reason: RefusalReason | None
+    trace: list[TraceStep] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _envelope_invariants(self) -> "AskResponse":

@@ -67,7 +67,7 @@ class TestAskEnvelopeWithFakePipeline:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("application/json")
         body = r.json()
-        assert set(body.keys()) == {"answer", "citations", "refused", "refusal_reason"}
+        assert set(body.keys()) == {"answer", "citations", "refused", "refusal_reason", "trace"}
         assert body["answer"] == "Boil water by heating it to 100 C."
         assert body["refused"] is False
         assert body["refusal_reason"] is None

@@ -111,9 +111,9 @@ class TestRelevanceAndSelection:
         ]
         assert [r["pageid"] for r in relevant_records(records)] == [2, 3]
 
-    def test_singular_selection_uses_lowest_stable_pageid(self):
+    def test_selection_passes_all_ranked_records_to_generation(self):
         records = [{"pageid": 20}, {"pageid": 3}, {"pageid": 11}]
-        assert [r["pageid"] for r in select_for_answer("How do I make soup?", records)] == [3]
+        assert [r["pageid"] for r in select_for_answer("How do I make soup?", records)] == [20, 3, 11]
 
     def test_comparison_keeps_relevant_candidates_in_rank_order(self):
         records = [{"pageid": 20}, {"pageid": 3}]

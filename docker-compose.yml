@@ -49,5 +49,15 @@ services:
       retries: 6
       start_period: 10s
 
+  ui:
+    build:
+      context: ./ui
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${UI_PORT:-3000}:80"
+    restart: unless-stopped
+
 volumes:
   recipe_qa_pgdata:

@@ -79,8 +79,7 @@ def plan_to_where(plan: QueryPlan) -> tuple[str, dict[str, Any]]:
 
 
 def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
-    """The hybrid search query: hard filters, then two ranked lists fused
-    with weighted RRF (0.6 lexical / 0.4 dense)."""
+    """Filter first, then rank the filtered corpus and keep nearest context."""
     where, _ = plan_to_where(plan)
     vec_rank = (
         "ROW_NUMBER() OVER (ORDER BY embedding <=> %(query_vec)s::vector)"
@@ -88,6 +87,10 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
     )
     dense_distance = (
         "embedding <=> %(query_vec)s::vector" if embed_query else "NULL::float"
+    )
+    order_clause = (
+        "dense_distance ASC, pageid ASC" if embed_query
+        else "fts_rank DESC, pageid ASC"
     )
     sql = f"""
     WITH filtered AS (
@@ -114,8 +117,7 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
                1.0 / (60 + lex_rank)
            ) AS rrf_score
     FROM ranked
-    WHERE fts_rank > 0 OR dense_distance <= {DENSE_DISTANCE_MAX}
-    ORDER BY rrf_score DESC, pageid ASC
+    ORDER BY {order_clause}
     LIMIT %(limit)s
     """
     return sql
@@ -137,26 +139,31 @@ _COMPARISON_RE = re.compile(
     r"\b(?:compare|comparison|difference|differences|versus|vs\.?|alternatives)\b",
     re.IGNORECASE,
 )
+_LIST_RE = re.compile(
+    r"\b(?:show\s+all|list|which|what\s+(?:are|recipes|dishes)|all\s+.*(?:recipes|dishes))\b",
+    re.IGNORECASE,
+)
 
 
 def is_comparison_question(question: str) -> bool:
     return bool(_COMPARISON_RE.search(question))
 
 
+def is_list_question(question: str) -> bool:
+    """Return whether the user explicitly asks for multiple matching recipes."""
+    return bool(_LIST_RE.search(question))
+
+
 def select_for_answer(question: str, records: list[dict]) -> list[dict]:
-    """Apply the stable single-recipe policy after relevance filtering."""
-    if is_comparison_question(question):
-        return records
-    if not records:
-        return []
-    return [min(records, key=lambda record: record["pageid"])]
+    """Pass every ranked candidate to generation for grounded selection."""
+    return records
 
 
 def plan_to_params(
     plan: QueryPlan,
     where_params: dict[str, Any],
     embed_query: bool,
-    limit: int = 8,
+    limit: int = 15,
 ) -> dict[str, Any]:
     params: dict[str, Any] = dict(where_params)
     params["search_query"] = plan.search_query
@@ -191,7 +198,7 @@ def search(
     plan: QueryPlan,
     query_embedding: list[float] | None,
     database_url: str,
-    limit: int = 8,
+    limit: int = 15,
 ) -> list[dict]:
     """Execute the hybrid search; returns plain record dicts."""
     import psycopg

@@ -23,13 +23,23 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.schemas import AskResponse, Citation
 
 MAX_ATTEMPTS = 2
-PROMPT_VERSION = "generate-v2"
+PROMPT_VERSION = "generate-v5"
 
 _SYSTEM_PROMPT = (
     "You answer cooking questions using ONLY the provided recipe records. "
-    "After each factual claim, cite the record it came from using its marker "
+    "The provided records are already hard-filtered and ranked by the server. "
+    "Use all relevant records in the context; for a request asking for all "
+    "matching dishes, include every matching record rather than selecting "
+    "only the first one. "
+    "Cite supporting records using their markers "
     "⟦pageid⟧, and list every cited pageid in the citations array with the "
     "exact quote from that record's source_text supporting the claim. "
+    "Use each source record marker at most once in the answer: place it after "
+    "the last sentence or paragraph supported by that article, never repeat "
+    "the same marker after every step or factual sentence. "
+    "Every citations.quote must be copied as one contiguous substring from "
+    "the matching source_text, including its original wording; do not write "
+    "a paraphrase as a quote. "
     "If the records do not contain the answer, refuse with refusal_reason "
     "out_of_corpus. If the question is not about food/cooking/recipes, refuse "
     "with out_of_domain. Never invent facts, URLs, times, or ingredients. "
@@ -58,6 +68,7 @@ class GenerationOutput(BaseModel):
 
 VALID_REFUSALS = {"out_of_corpus", "out_of_domain", "safety"}
 _PUBLIC_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
+_MARKER_RE = re.compile(r"⟦(\d+)⟧")
 
 
 def _ws(s: str) -> str:
@@ -67,6 +78,23 @@ def _ws(s: str) -> str:
 def _public_answer(answer: str) -> str:
     """Remove request-scoped citation markers from the public answer text."""
     return _PUBLIC_MARKER_RE.sub("", answer).strip()
+
+
+def _inline_answer(answer: str, citations: dict[int, Citation]) -> str:
+    """Keep citation positions and turn model markers into safe Markdown links."""
+    linked: set[int] = set()
+
+    def replace(match: re.Match[str]) -> str:
+        pageid = int(match.group(1))
+        citation = citations.get(pageid)
+        if citation is None:
+            return ""
+        if pageid in linked:
+            return ""
+        linked.add(pageid)
+        return f"[{citation.title}]({citation.url})"
+
+    return _MARKER_RE.sub(replace, answer).strip()
 
 
 def build_messages(question: str, records: list[dict],
@@ -89,7 +117,9 @@ def build_messages(question: str, records: list[dict],
         messages.append({
             "role": "user",
             "content": f"Your previous response was rejected: {error_hint}. "
-                       f"Return a corrected response in the same JSON format.",
+                       "Return a corrected response in the same JSON format. "
+                       "Copy a short, contiguous quote exactly from source_text "
+                       "and use each source marker at most once.",
         })
     return messages
 
@@ -115,7 +145,7 @@ def _citation_order(answer: str, citations: list[GenerationCitation]) -> list[in
                   key=lambda pid: (first_pos.get(pid, default), pid))
 
 
-def _to_response(out: GenerationOutput, records: list[dict]) -> AskResponse | None:
+def _to_response(out: GenerationOutput, records: list[dict], inline_links: bool = False) -> AskResponse | None:
     """Validate + convert a model output; None means contract-invalid (retry)."""
     by_pageid = {r["pageid"]: r for r in records}
 
@@ -152,7 +182,11 @@ def _to_response(out: GenerationOutput, records: list[dict]) -> AskResponse | No
         Citation(title=by_pageid[pid]["title"], url=by_pageid[pid]["source_url"])
         for pid in ordered if not (pid in seen or seen.add(pid))
     ]
-    answer = _public_answer(out.answer)
+    citation_by_pageid = {
+        pid: Citation(title=by_pageid[pid]["title"], url=by_pageid[pid]["source_url"])
+        for pid in ordered if pid in by_pageid
+    }
+    answer = _inline_answer(out.answer, citation_by_pageid) if inline_links else _public_answer(out.answer)
     if not answer:
         return None
     return AskResponse(
@@ -167,6 +201,7 @@ def generate(
     question: str,
     records: list[dict],
     client: Any | None = None,
+    inline_links: bool = False,
 ) -> AskResponse:
     """Produce the final §7.1 response from the retrieved records."""
     if client is None:
@@ -192,7 +227,7 @@ def generate(
             error_hint = f"schema violation: {exc.errors()[0].get('msg')}"
             continue
 
-        result = _to_response(out, records)
+        result = _to_response(out, records, inline_links=inline_links)
         if result == "demote":
             demote = True
             error_hint = "no citation survived the verbatim evidence check"

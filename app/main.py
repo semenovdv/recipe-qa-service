@@ -8,7 +8,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
@@ -107,6 +107,76 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
                      refusal_reason=result.refusal_reason)
         return JSONResponse(result.model_dump())
 
+    @app.post("/ask/stream")
+    @app.post("/ask/advanced/stream")
+    async def ask_stream(request: Request) -> StreamingResponse:
+        """Stream safe pipeline progress for the operator-facing UI."""
+        if request.headers.get("accept") != REQUIRED_ACCEPT:
+            raise not_acceptable(f"this endpoint requires Accept: {REQUIRED_ACCEPT}")
+        content_type = request.headers.get("content-type", "")
+        if content_type.split(";", 1)[0].strip().lower() != "application/json":
+            raise invalid_request("Content-Type must be application/json")
+        raw = await request.body()
+        if len(raw) > MAX_BODY_BYTES:
+            raise payload_too_large("request body exceeds the size limit")
+        question = _parse_and_validate(raw)
+        pipeline = pipeline_reg.get_pipeline(request.app)
+        if pipeline is None:
+            raise dependency_unavailable("the answering pipeline is not available")
+
+        request_id = uuid.uuid4().hex
+        advanced = request.url.path == "/ask/advanced/stream"
+        started = time.perf_counter()
+        loop = asyncio.get_running_loop()
+        events: asyncio.Queue[dict] = asyncio.Queue()
+
+        def progress(steps: list[dict]) -> None:
+            loop.call_soon_threadsafe(events.put_nowait, {"type": "trace", "steps": steps})
+
+        async def run_pipeline() -> None:
+            try:
+                raw_result = await asyncio.wait_for(
+                    run_in_threadpool(
+                        pipeline.answer, question, request_id, progress, advanced
+                    ),
+                    timeout=MAX_REQUEST_SECONDS,
+                )
+                result = _validate_envelope(raw_result)
+                await events.put({"type": "result", "response": result.model_dump()})
+            except Exception as exc:  # noqa: BLE001 — stream never leaks internals
+                logger.warning("stream failed request_id=%s error_type=%s", request_id, type(exc).__name__)
+                await events.put({"type": "error", "detail": "The answering service is temporarily unavailable."})
+
+        async def generate_events():
+            from app.pipeline import _new_trace
+
+            yield _ndjson({"type": "trace", "steps": _new_trace()})
+            task = asyncio.create_task(run_pipeline())
+            try:
+                while True:
+                    try:
+                        event = await asyncio.wait_for(events.get(), timeout=1.0)
+                    except asyncio.TimeoutError:
+                        if task.done() and events.empty():
+                            break
+                        yield _ndjson({
+                            "type": "heartbeat",
+                            "elapsed_ms": round((time.perf_counter() - started) * 1000),
+                        })
+                        continue
+                    yield _ndjson(event)
+                    if event["type"] in {"result", "error"}:
+                        break
+            finally:
+                if not task.done():
+                    task.cancel()
+
+        return StreamingResponse(
+            generate_events(),
+            media_type="application/x-ndjson",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
     return app
 
 
@@ -132,6 +202,10 @@ def _parse_and_validate(raw: bytes) -> str:
     if not question.strip():
         raise invalid_request("question must be a non-empty string")
     return question.strip()
+
+
+def _ndjson(value: dict) -> str:
+    return json.dumps(value, ensure_ascii=False) + "\n"
 
 
 def _log_request(

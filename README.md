@@ -43,7 +43,7 @@ needed first.
 Docker Compose starts PostgreSQL 16 with pgvector, waits for the database healthcheck,
 runs the idempotent corpus seed, and then starts the API. The first clean start calls
 the embeddings API for the 49 corpus records; later starts reuse embeddings for the
-same corpus version.
+same corpus version. It also builds and serves the TypeScript UI through nginx.
 
 ```bash
 cp .env.example .env
@@ -51,9 +51,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The API is available at `http://localhost:8000`; health is checked at
-`http://localhost:8000/health`. The local database is exposed on port `5433` for
-inspection, while the API connects to it internally as `db:5432`.
+The UI is available at `http://localhost:3000`; the API is available at
+`http://localhost:8000`; health is checked at `http://localhost:8000/health`.
+The UI proxies `/ask` and `/health` to the API service. The local database is
+exposed on port `5433` for inspection, while the API connects to it internally as
+`db:5432`.
 
 To stop the services while keeping the database volume:
 
