@@ -2,18 +2,12 @@
 
 ## Status
 
-The core backend and Docker Compose workflow are implemented and verified locally.
-A public deployment, UI, CI/CD, and managed production database are still pending.
+The backend, Docker Compose workflow, streamed UI and golden evaluation are implemented and verified locally. Public deployment and managed production database remain the final external step.
 The root
 [`SPEC.md`](SPEC.md) is the canonical entry point, and the normative text is
 kept in [`docs/03_SPEC.md`](docs/03_SPEC.md), without a second copy.
 
-Until the corpus EDA is done, a baseline of the `lowest stable recipe ID` is fixed
-for equally relevant recipes after filtering. If EDA finds a better and reliable
-comparable signal — for example, popularity, view count, or user likes — it may
-replace the baseline. A signal cannot violate hard constraints; a strategy change
-is recorded in an ADR and in deterministic tests. If no reliable signal exists,
-the stable-ID baseline remains.
+Retrieval first applies the QueryPlan's deterministic hard filters to the full corpus, then ranks the remaining records by query embedding and passes up to 15 nearest records to the answer model. This preserves recall for broad questions; the generator decides how many recipes to present and remains evidence-gated.
 
 ## Core scope
 
@@ -53,7 +47,7 @@ docker compose up --build
 
 The UI is available at `http://localhost:3000`; the API is available at
 `http://localhost:8000`; health is checked at `http://localhost:8000/health`.
-The UI proxies `/ask` and `/health` to the API service. The local database is
+The UI proxies `/ask`, `/ask/stream`, `/ask/advanced/stream` and `/health` to the API service. The local database is
 exposed on port `5433` for inspection, while the API connects to it internally as
 `db:5432`.
 
@@ -85,11 +79,16 @@ actually chosen and the results of their runs.
 
 ## Deployment, cost and latency
 
-The local Docker workflow is verified, but a public provider and production URLs have
-not been selected yet. The current runtime uses `gpt-5.6-luna` for query planning and
+The local Docker workflow is verified; a production provider and URLs are not yet selected. The current runtime uses `gpt-5.6-luna` for query planning and
 answer generation, plus `text-embedding-3-small` for recipe and query vectors. The
 dominant latency is the two LLM calls; the next optimization is request-level metrics
 and golden-eval measurement before changing model tiers.
+
+### Easiest low-cost deployment
+
+For a review deployment, use Northflank (or an equivalent Docker PaaS) with one Postgres+pgvector service, one API service built from the root `Dockerfile`, one UI service built from `ui/Dockerfile`, and a one-shot seed job using `python -m scripts.db_seed --apply`. Set `OPENAI_API_KEY` and `DATABASE_URL` as platform secrets, wait for `/health`, then open the UI service URL. Free tiers and database persistence limits change, so confirm the provider's current allowance before choosing it; never put the API key in Git.
+
+For an actually free small demo, use a free Docker web service plus a free Postgres provider that supports `pgvector`; this is usually more manual and may sleep or have storage limits.
 
 Production still requires a managed PostgreSQL+pgvector instance, platform-injected
 `DATABASE_URL` and `OPENAI_API_KEY`, a public API/UI deployment, backups, and CI/CD.

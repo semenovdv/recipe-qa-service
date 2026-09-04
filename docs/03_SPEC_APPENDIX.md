@@ -85,25 +85,26 @@ draft. Its citation-marker parser may transform only allow-listed source IDs
 into trusted title/URL events. Streaming does not weaken the evidence or
 failure rules of the core `/ask` endpoint.
 
-## 5. Optional streaming feature
+## 5. Streaming feature
 
-This entire section is optional. It is implemented only after the core `/ask`,
-UI, tests, evaluation and deployment are complete.
+The streaming feature is implemented alongside the core endpoint. It reuses the
+same validated answer and evidence gate; it is an additive transport/UI mode.
 
 ### 5.1 Endpoint and event model
 
-`POST /ask/stream` accepts the same request body as `/ask` and requires
-`Accept: text/event-stream`. It returns UTF-8 Server-Sent Events. The response
-uses this lifecycle:
+`POST /ask/stream` and `POST /ask/advanced/stream` accept the same request body
+as `/ask` and return newline-delimited JSON (`application/x-ndjson`). The
+response emits trace snapshots/heartbeats while work is running and finishes
+with exactly one `result` or `error` event.
 
 ```text
-start → zero or more text/citation events → exactly one done
+trace → zero or more heartbeat/trace events → exactly one result
 ```
 
 An operational failure after the stream starts uses `error` instead of `done`:
 
 ```text
-start → zero or more text/citation events → exactly one error
+trace → zero or more heartbeat/trace events → exactly one error
 ```
 
 The only public event names are:
