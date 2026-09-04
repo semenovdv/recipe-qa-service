@@ -1,5 +1,7 @@
 import "./style.css";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
 type Citation = { title: string; url: string };
 type AskResponse = {
   answer: string;
@@ -253,7 +255,7 @@ form.addEventListener("submit", async (event) => {
   ]);
   startTraceClock();
   try {
-    const endpoint = advancedMode.checked ? "/ask/advanced/stream" : "/ask/stream";
+    const endpoint = `${API_BASE}${advancedMode.checked ? "/ask/advanced/stream" : "/ask/stream"}`;
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Accept": "application/json", "Content-Type": "application/json" },
