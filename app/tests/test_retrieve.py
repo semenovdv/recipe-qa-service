@@ -3,6 +3,7 @@
 Offline: the SQL is generated and checked as text + params; execution is
 faked. Live behavior was verified against the seeded pgvector container.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -21,12 +22,14 @@ from app.retrieve import (
 
 
 def plan(*requirements):
-    return parse_plan({
-        "intent": "recipe",
-        "intent_reason": "the user asks about a recipe",
-        "search_query": "dinner",
-        "requirements": list(requirements),
-    })
+    return parse_plan(
+        {
+            "intent": "recipe",
+            "intent_reason": "the user asks about a recipe",
+            "search_query": "dinner",
+            "requirements": list(requirements),
+        }
+    )
 
 
 class TestPlanToWhere:
@@ -37,45 +40,54 @@ class TestPlanToWhere:
 
     def test_ingredients_contains(self):
         where, params = plan_to_where(
-            plan({"field": "ingredients", "op": "contains", "value": "salt"}))
+            plan({"field": "ingredients", "op": "contains", "value": "salt"})
+        )
         assert "ILIKE" in where
         assert params == {"req_0": "%salt%"}
 
     def test_ingredients_not_contains(self):
         where, params = plan_to_where(
-            plan({"field": "ingredients", "op": "not_contains", "value": "peanut"}))
+            plan({"field": "ingredients", "op": "not_contains", "value": "peanut"})
+        )
         assert "NOT EXISTS" in where
         assert params == {"req_0": "%peanut%"}
 
     def test_cuisine_eq(self):
         where, params = plan_to_where(
-            plan({"field": "cuisine", "op": "eq", "value": "Ukrainian"}))
+            plan({"field": "cuisine", "op": "eq", "value": "Ukrainian"})
+        )
         assert "cuisine = %(req_0)s" in where
         assert params == {"req_0": "Ukrainian"}
 
     def test_diet_any_and_all(self):
-        where, params = plan_to_where(plan(
-            {"field": "diet_tags", "op": "any", "value": ["vegetarian"]},
-            {"field": "diet_tags", "op": "all", "value": ["vegan", "halal"]},
-        ))
+        where, params = plan_to_where(
+            plan(
+                {"field": "diet_tags", "op": "any", "value": ["vegetarian"]},
+                {"field": "diet_tags", "op": "all", "value": ["vegan", "halal"]},
+            )
+        )
         assert "diet_tags && %(req_0)s" in where
         assert "diet_tags @> %(req_1)s" in where
         assert params["req_0"] == ["vegetarian"]
         assert params["req_1"] == ["vegan", "halal"]
 
     def test_numeric_lte_gte(self):
-        where, _ = plan_to_where(plan(
-            {"field": "time_minutes", "op": "lte", "value": 30},
-            {"field": "servings", "op": "gte", "value": 4},
-        ))
+        where, _ = plan_to_where(
+            plan(
+                {"field": "time_minutes", "op": "lte", "value": 30},
+                {"field": "servings", "op": "gte", "value": 4},
+            )
+        )
         assert "time_minutes <= %(req_0)s" in where
         assert "servings >= %(req_1)s" in where
 
     def test_and_joined(self):
-        where, params = plan_to_where(plan(
-            {"field": "cuisine", "op": "eq", "value": "Indian"},
-            {"field": "time_minutes", "op": "lte", "value": 45},
-        ))
+        where, params = plan_to_where(
+            plan(
+                {"field": "cuisine", "op": "eq", "value": "Indian"},
+                {"field": "time_minutes", "op": "lte", "value": 45},
+            )
+        )
         assert where.count("AND") == 1
         assert set(params) == {"req_0", "req_1"}
 
@@ -118,7 +130,9 @@ class TestRelevanceAndSelection:
 
     def test_selection_passes_all_ranked_records_to_generation(self):
         records = [{"pageid": 20}, {"pageid": 3}, {"pageid": 11}]
-        assert [r["pageid"] for r in select_for_answer("How do I make soup?", records)] == [20, 3, 11]
+        assert [
+            r["pageid"] for r in select_for_answer("How do I make soup?", records)
+        ] == [20, 3, 11]
 
     def test_comparison_keeps_relevant_candidates_in_rank_order(self):
         records = [{"pageid": 20}, {"pageid": 3}]
@@ -128,10 +142,13 @@ class TestRelevanceAndSelection:
 class TestPlanToParams:
     def test_merges_where_params_and_query_text(self):
         _, where_params = plan_to_where(
-            plan({"field": "cuisine", "op": "eq", "value": "Indian"}))
+            plan({"field": "cuisine", "op": "eq", "value": "Indian"})
+        )
         params = plan_to_params(
             plan({"field": "cuisine", "op": "eq", "value": "Indian"}),
-            where_params, embed_query=False, limit=5,
+            where_params,
+            embed_query=False,
+            limit=5,
         )
         assert params["req_0"] == "Indian"
         assert params["search_query"] == "dinner"

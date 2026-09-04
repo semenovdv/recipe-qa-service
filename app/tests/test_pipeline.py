@@ -74,12 +74,15 @@ def test_safety_is_refused_after_llm_plan_before_any_downstream_call(monkeypatch
     calls = []
     monkeypatch.setattr(
         "app.extract.extract_plan",
-        lambda *args, **kwargs: calls.append(args[0]) or parse_plan({
-            "intent": "safety",
-            "intent_reason": "the user asks for an allergy safety guarantee",
-            "search_query": "",
-            "requirements": [],
-        }),
+        lambda *args, **kwargs: calls.append(args[0])
+        or parse_plan(
+            {
+                "intent": "safety",
+                "intent_reason": "the user asks for an allergy safety guarantee",
+                "search_query": "",
+                "requirements": [],
+            }
+        ),
     )
     out = pipeline.answer("Is this recipe nut-free?", "req-1")
     assert calls == ["Is this recipe nut-free?"]
@@ -87,18 +90,23 @@ def test_safety_is_refused_after_llm_plan_before_any_downstream_call(monkeypatch
     assert out["refusal_reason"] == "safety"
 
 
-def test_out_of_domain_is_refused_after_llm_plan_before_any_downstream_call(monkeypatch):
+def test_out_of_domain_is_refused_after_llm_plan_before_any_downstream_call(
+    monkeypatch,
+):
     pipeline = make_pipeline([record(1)])
     pipeline._client = NonRecipeClient()
     calls = []
     monkeypatch.setattr(
         "app.extract.extract_plan",
-        lambda *args, **kwargs: calls.append(args[0]) or parse_plan({
-            "intent": "out_of_domain",
-            "intent_reason": "the user asks about weather",
-            "search_query": "",
-            "requirements": [],
-        }),
+        lambda *args, **kwargs: calls.append(args[0])
+        or parse_plan(
+            {
+                "intent": "out_of_domain",
+                "intent_reason": "the user asks about weather",
+                "search_query": "",
+                "requirements": [],
+            }
+        ),
     )
     out = pipeline.answer("What is the weather tomorrow?", "req-1")
     assert calls == ["What is the weather tomorrow?"]
@@ -126,12 +134,14 @@ def test_singular_answer_receives_only_lowest_stable_id(monkeypatch):
 
     monkeypatch.setattr(
         "app.extract.extract_plan",
-        lambda *args, **kwargs: parse_plan({
-            "intent": "recipe",
-            "intent_reason": "the user asks how to cook",
-            "search_query": "soup",
-            "requirements": [],
-        }),
+        lambda *args, **kwargs: parse_plan(
+            {
+                "intent": "recipe",
+                "intent_reason": "the user asks how to cook",
+                "search_query": "soup",
+                "requirements": [],
+            }
+        ),
     )
     from app.schemas import AskResponse
 
@@ -139,9 +149,7 @@ def test_singular_answer_receives_only_lowest_stable_id(monkeypatch):
         captured["records"] = records
         return AskResponse(
             answer="supported",
-            citations=[
-                {"title": records[0]["title"], "url": records[0]["source_url"]}
-            ],
+            citations=[{"title": records[0]["title"], "url": records[0]["source_url"]}],
             refused=False,
             refusal_reason=None,
         )

@@ -87,8 +87,13 @@ def parse_time_minutes(raw: str | None) -> int | None:
     if not text:
         return None
     # treat unicode fractions as their decimal values ("1 1/2" or "1½")
-    for fraction, decimal in {"¼": " 1/4", "½": " 1/2", "¾": " 3/4",
-                              "⅓": " 1/3", "⅔": " 2/3"}.items():
+    for fraction, decimal in {
+        "¼": " 1/4",
+        "½": " 1/2",
+        "¾": " 3/4",
+        "⅓": " 1/3",
+        "⅔": " 2/3",
+    }.items():
         text = text.replace(fraction, decimal)
 
     # reject ranges like "1-2 hours", "1–2 hours", "30-40 min"
@@ -172,7 +177,8 @@ def _strip_leading_quantity(name: str) -> str:
         r"[\d½¼¾⅓⅔⅛⅜⅝⅞.,/\s–—-]*"
         r"(?:cups?|tablespoons?|tbsp|teaspoons?|tsp|grams?|g|ounces?|oz|pounds?|lbs?|ml|l)?"
         r"\s+",
-        "", name,
+        "",
+        name,
         flags=re.IGNORECASE,
     )
     return name.strip()
@@ -204,8 +210,9 @@ def extract_summary(content: str) -> dict[str, Any]:
 
 _HEADING_RE = re.compile(r"^(={2,4})\s*(.+?)\s*\1\s*$", re.MULTILINE)
 _INGREDIENTS_HEADING_RE = re.compile(r"ingredients?", re.IGNORECASE)
-_PROCEDURE_HEADING_RE = re.compile(r"procedure|preparation|instructions|steps|method",
-                                   re.IGNORECASE)
+_PROCEDURE_HEADING_RE = re.compile(
+    r"procedure|preparation|instructions|steps|method", re.IGNORECASE
+)
 
 
 def _section(content: str, heading_pattern: re.Pattern[str]) -> str:
@@ -217,11 +224,11 @@ def _section(content: str, heading_pattern: re.Pattern[str]) -> str:
             continue
         level = len(match.group(1))
         end = len(content)
-        for later in matches[index + 1:]:
+        for later in matches[index + 1 :]:
             if len(later.group(1)) <= level:
                 end = later.start()
                 break
-        return content[match.end():end]
+        return content[match.end() : end]
     return ""
 
 
@@ -257,7 +264,9 @@ def _bullet_lines(section_text: str) -> list[str]:
 def extract_ingredient_lines(content: str) -> list[str]:
     """Raw (markup-stripped) ingredient bullet lines from the Ingredients section."""
     section = _section(content, _INGREDIENTS_HEADING_RE)
-    return [_strip_markup(line) for line in _bullet_lines(section) if _strip_markup(line)]
+    return [
+        _strip_markup(line) for line in _bullet_lines(section) if _strip_markup(line)
+    ]
 
 
 def extract_ingredients(content: str) -> list[str]:
@@ -276,7 +285,9 @@ def extract_ingredients(content: str) -> list[str]:
 def extract_steps(content: str) -> list[str]:
     """Ordered step lines from the Procedure/Instructions section."""
     section = _section(content, _PROCEDURE_HEADING_RE)
-    return [_strip_markup(line) for line in _bullet_lines(section) if _strip_markup(line)]
+    return [
+        _strip_markup(line) for line in _bullet_lines(section) if _strip_markup(line)
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -329,7 +340,9 @@ def normalize_variant_group(title: str) -> str:
     suffixes are stripped, the remaining title is lowercased.
     """
     text = title.removeprefix("Cookbook:").strip()
-    text = re.sub(r"[\s_-]+(?:i{1,3}|iv|v|vi{1,3}|ix|x)$", "", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"[\s_-]+(?:i{1,3}|iv|v|vi{1,3}|ix|x)$", "", text, flags=re.IGNORECASE
+    )
     text = re.sub(r"\s*\([^)]*\)$", "", text)  # drop trailing parenthetical
     text = re.sub(r"[^\w\s/-]", "", text)
     return re.sub(r"\s+", " ", text).strip().lower()
@@ -340,7 +353,9 @@ def normalize_variant_group(title: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def parse_wikitext_page(page: dict[str, Any], fetched_at: str | None = None) -> dict[str, Any]:
+def parse_wikitext_page(
+    page: dict[str, Any], fetched_at: str | None = None
+) -> dict[str, Any]:
     """Build a normalized recipe record from one prop=revisions page object."""
     revision = page["revisions"][0]
     content = revision["slots"]["main"]["content"]

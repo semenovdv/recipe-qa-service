@@ -6,11 +6,17 @@ plan (with the validator error appended per ADR-001), apply corpus
 vocabulary normalization, and raise ExtractionError when retries are
 exhausted (mapped to the 503 dependency path, never a fake answer).
 """
+
 from __future__ import annotations
 
 import pytest
 
-from app.extract import ExtractionError, UnsupportedConstraintError, build_messages, extract_plan
+from app.extract import (
+    ExtractionError,
+    UnsupportedConstraintError,
+    build_messages,
+    extract_plan,
+)
 
 
 class FakeCompletions:
@@ -71,12 +77,16 @@ class TestExtractPlan:
         assert len(plan.requirements) == 2
 
     def test_llm_plan_can_classify_safety_without_search_payload(self):
-        client = FakeClient([plan_dict(
-            intent="safety",
-            intent_reason="the user asks for an allergy safety assessment",
-            search_query="",
-            requirements=[],
-        )])
+        client = FakeClient(
+            [
+                plan_dict(
+                    intent="safety",
+                    intent_reason="the user asks for an allergy safety assessment",
+                    search_query="",
+                    requirements=[],
+                )
+            ]
+        )
         plan = extract_plan("Could this be safe for a peanut allergy?", client=client)
         assert plan.intent == "safety"
         assert plan.search_query == ""
@@ -94,11 +104,17 @@ class TestExtractPlan:
         assert any("how to cook borscht?" in str(m) for m in msgs)
 
     def test_invalid_first_response_retried_once(self):
-        client = FakeClient([
-            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
-                {"field": "cuisine", "op": "eq", "value": 42}]},  # invalid
-            plan_dict(),
-        ])
+        client = FakeClient(
+            [
+                {
+                    "intent": "recipe",
+                    "intent_reason": "recipe request",
+                    "search_query": "x",
+                    "requirements": [{"field": "cuisine", "op": "eq", "value": 42}],
+                },  # invalid
+                plan_dict(),
+            ]
+        )
         plan = extract_plan("q", client=client)
         assert plan.search_query == "quick vegetarian dinner"
         assert len(client.chat.completions.calls) == 2
@@ -107,10 +123,22 @@ class TestExtractPlan:
         assert any("rejected" in str(m).lower() for m in retry_msgs)
 
     def test_exhausted_retries_raise_extraction_error(self):
-        client = FakeClient([
-            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "", "requirements": []},
-            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "", "requirements": []},
-        ])
+        client = FakeClient(
+            [
+                {
+                    "intent": "recipe",
+                    "intent_reason": "recipe request",
+                    "search_query": "",
+                    "requirements": [],
+                },
+                {
+                    "intent": "recipe",
+                    "intent_reason": "recipe request",
+                    "search_query": "",
+                    "requirements": [],
+                },
+            ]
+        )
         with pytest.raises(ExtractionError):
             extract_plan("q", client=client)
         assert len(client.chat.completions.calls) == 2
@@ -121,18 +149,33 @@ class TestExtractPlan:
             extract_plan("q", client=client)
 
     def test_vocabulary_normalization_applied(self):
-        client = FakeClient([plan_dict(
-            requirements=[{"field": "cuisine", "op": "eq", "value": "ukrainian"}])])
-        plan = extract_plan("q", client=client,
-                            vocabularies={"cuisines": {"Ukrainian", "Indian"}})
+        client = FakeClient(
+            [
+                plan_dict(
+                    requirements=[
+                        {"field": "cuisine", "op": "eq", "value": "ukrainian"}
+                    ]
+                )
+            ]
+        )
+        plan = extract_plan(
+            "q", client=client, vocabularies={"cuisines": {"Ukrainian", "Indian"}}
+        )
         assert plan.requirements[0].value == "Ukrainian"
 
     def test_out_of_vocabulary_retried_then_raises(self):
-        client = FakeClient([
-            plan_dict(requirements=[{"field": "cuisine", "op": "eq", "value": "Martian"}]),
-            plan_dict(requirements=[{"field": "cuisine", "op": "eq", "value": "Atlantis"}]),
-        ])
+        client = FakeClient(
+            [
+                plan_dict(
+                    requirements=[{"field": "cuisine", "op": "eq", "value": "Martian"}]
+                ),
+                plan_dict(
+                    requirements=[{"field": "cuisine", "op": "eq", "value": "Atlantis"}]
+                ),
+            ]
+        )
         with pytest.raises(UnsupportedConstraintError):
-            extract_plan("q", client=client,
-                         vocabularies={"cuisines": {"Ukrainian", "Indian"}})
+            extract_plan(
+                "q", client=client, vocabularies={"cuisines": {"Ukrainian", "Indian"}}
+            )
         assert len(client.chat.completions.calls) == 2

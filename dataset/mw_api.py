@@ -36,7 +36,9 @@ def _get(session: requests.Session, params: dict[str, str]) -> dict[str, Any]:
             response.raise_for_status()
             payload = response.json()
             if "error" in payload:
-                raise MediaWikiError(f"API error: {payload['error'].get('info', payload['error'])}")
+                raise MediaWikiError(
+                    f"API error: {payload['error'].get('info', payload['error'])}"
+                )
             time.sleep(DELAY_BETWEEN_REQUESTS_SECONDS)
             return payload
         except (requests.RequestException, MediaWikiError, ValueError) as error:
@@ -76,9 +78,7 @@ def list_category_members(
             return members
 
 
-def fetch_pages(
-    session: requests.Session, pageids: list[int]
-) -> list[dict[str, Any]]:
+def fetch_pages(session: requests.Session, pageids: list[int]) -> list[dict[str, Any]]:
     """Fetch current revision content for the given pageids (batched)."""
     pages: list[dict[str, Any]] = []
     for start in range(0, len(pageids), 10):

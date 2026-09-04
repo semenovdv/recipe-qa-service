@@ -5,6 +5,7 @@ the key-layout rules there). ``.env`` is read for local dev convenience;
 real environment variables take precedence, so CI/platform injection and
 test monkeypatching override the file.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache

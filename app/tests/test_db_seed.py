@@ -4,6 +4,7 @@ Everything here runs without a database or network: the seeder's pure parts
 (row building, embedding-text composition, merge SQL) are pinned first,
 then exercised live in scripts/db_seed.py.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -44,9 +45,14 @@ class TestEmbeddingText:
         assert "vegetarian" in text
 
     def test_handles_missing_optional_fields(self):
-        text = embedding_text(base_record(
-            cuisine=None, dish_type=None, diet_tags=None,
-            ingredients_normalized=None))
+        text = embedding_text(
+            base_record(
+                cuisine=None,
+                dish_type=None,
+                diet_tags=None,
+                ingredients_normalized=None,
+            )
+        )
         assert "Baingan Bartha" in text  # never crashes, always has title
 
     def test_deterministic(self):
@@ -56,16 +62,21 @@ class TestEmbeddingText:
 class TestSearchText:
     def test_title_plus_ingredients(self):
         text = search_text(base_record())
-        assert text == "Cookbook:Baingan Bartha Ghee or oil panch puran potatoes Indian side dish"
+        assert (
+            text
+            == "Cookbook:Baingan Bartha Ghee or oil panch puran potatoes Indian side dish"
+        )
 
     def test_handles_missing_ingredients(self):
-        assert search_text(base_record(ingredients_normalized=None)) == "Cookbook:Baingan Bartha Indian side dish"
+        assert (
+            search_text(base_record(ingredients_normalized=None))
+            == "Cookbook:Baingan Bartha Indian side dish"
+        )
 
 
 class TestBuildRow:
     def test_maps_all_columns(self):
-        row = build_row(base_record(), corpus_version="abc123",
-                        embedding=[0.1] * 1536)
+        row = build_row(base_record(), corpus_version="abc123", embedding=[0.1] * 1536)
         assert row["pageid"] == 4991
         assert row["title"] == "Cookbook:Baingan Bartha"
         assert row["source_url"].startswith("https://en.wikibooks.org/wiki/")
@@ -77,8 +88,9 @@ class TestBuildRow:
         assert len(row["embedding"]) == 1536
 
     def test_missing_diet_tags_become_empty_list(self):
-        row = build_row(base_record(diet_tags=None), corpus_version="x",
-                        embedding=[0.0] * 1536)
+        row = build_row(
+            base_record(diet_tags=None), corpus_version="x", embedding=[0.0] * 1536
+        )
         assert row["diet_tags"] == []
 
     def test_rejects_missing_pageid(self):
@@ -99,10 +111,15 @@ class TestMergeSql:
 class TestVocabularies:
     def test_collects_case_preserving_values(self):
         records = [
-            base_record(pageid=1, cuisine="Indian", dish_type="soup",
-                        diet_tags=["vegetarian"]),
-            base_record(pageid=2, cuisine="Ukrainian", dish_type="soup",
-                        diet_tags=["vegan", "gluten-free"]),
+            base_record(
+                pageid=1, cuisine="Indian", dish_type="soup", diet_tags=["vegetarian"]
+            ),
+            base_record(
+                pageid=2,
+                cuisine="Ukrainian",
+                dish_type="soup",
+                diet_tags=["vegan", "gluten-free"],
+            ),
             base_record(pageid=3, cuisine=None, dish_type=None, diet_tags=None),
         ]
         v = vocabularies_from_records(records)

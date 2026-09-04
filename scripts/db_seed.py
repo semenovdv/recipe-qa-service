@@ -11,6 +11,7 @@ Usage:
 
 Requires DATABASE_URL (see .env.example) and OPENAI_API_KEY for --apply.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,11 +42,13 @@ def load_records() -> tuple[str, list[dict]]:
         if pageid is None:
             raise ValueError(f"enriched record without pageid: {path.name}")
         summary = enriched.get("summary") or {}
-        records.append({
-            **enriched,
-            "time_minutes": summary.get("time_minutes"),
-            "servings": _parse_servings(summary.get("servings")),
-        })
+        records.append(
+            {
+                **enriched,
+                "time_minutes": summary.get("time_minutes"),
+                "servings": _parse_servings(summary.get("servings")),
+            }
+        )
     return corpus_version, records
 
 
@@ -64,14 +67,18 @@ def _parse_servings(raw: object) -> int | None:
     return int(digits)
 
 
-def build_rows(records: list[dict], corpus_version: str,
-               embeddings: dict[int, list[float]]) -> list[dict]:
+def build_rows(
+    records: list[dict], corpus_version: str, embeddings: dict[int, list[float]]
+) -> list[dict]:
     rows = []
     for rec in records:
-        rows.append(build_row(
-            rec, corpus_version=corpus_version,
-            embedding=embeddings[rec["pageid"]],
-        ))
+        rows.append(
+            build_row(
+                rec,
+                corpus_version=corpus_version,
+                embedding=embeddings[rec["pageid"]],
+            )
+        )
     return rows
 
 
@@ -119,7 +126,8 @@ def apply(corpus_version: str, records: list[dict]) -> None:
         cur.execute("SELECT pageid, corpus_version FROM recipes")
         existing = {pageid: version for pageid, version in cur.fetchall()}
         records_to_embed = [
-            record for record in records
+            record
+            for record in records
             if existing.get(record["pageid"]) != corpus_version
         ]
         print(f"Embedding {len(records_to_embed)} new or changed records...")
@@ -130,22 +138,23 @@ def apply(corpus_version: str, records: list[dict]) -> None:
         if rows:
             cur.executemany(merge_sql(), rows)
         # Stale-row cleanup: corpus may have shrunk since last seed.
-        cur.execute(
-            "DELETE FROM recipes WHERE corpus_version <> %s", (corpus_version,)
-        )
+        cur.execute("DELETE FROM recipes WHERE corpus_version <> %s", (corpus_version,))
         cur.execute("SELECT count(*), min(corpus_version) FROM recipes")
         count, version = cur.fetchone()
         if count != len(records) or version != corpus_version:
             sys.exit(f"verification failed: {count} rows, version {version}")
         conn.commit()
-    print(f"Seeded {count} rows at corpus_version={corpus_version} "
-          f"in {time.time() - t0:.1f}s")
+    print(
+        f"Seeded {count} rows at corpus_version={corpus_version} "
+        f"in {time.time() - t0:.1f}s"
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--apply", action="store_true",
-                        help="apply schema and write to the database")
+    parser.add_argument(
+        "--apply", action="store_true", help="apply schema and write to the database"
+    )
     args = parser.parse_args()
 
     corpus_version, records = load_records()
@@ -153,11 +162,14 @@ def main() -> None:
 
     if not args.apply:
         rows = build_rows(
-            records, corpus_version,
+            records,
+            corpus_version,
             embeddings={r["pageid"]: [0.0] * EMBEDDING_DIM for r in records},
         )
-        print(f"DRY RUN: would embed and upsert {len(rows)} rows "
-              f"(no DB writes, no API calls)")
+        print(
+            f"DRY RUN: would embed and upsert {len(rows)} rows "
+            f"(no DB writes, no API calls)"
+        )
         return
 
     apply(corpus_version, records)

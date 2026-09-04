@@ -14,7 +14,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt pytest
       - run: pytest -q
-      - run: pip install ruff mypy pip-audit detect-secrets
+      - run: pip install black ruff mypy pip-audit detect-secrets
+      - run: black --check app dataset scripts
       - run: ruff check scripts/start_api.py
       - run: python -m compileall -q app dataset scripts
       - run: pip-audit -r requirements.txt

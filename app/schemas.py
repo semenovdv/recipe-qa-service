@@ -9,6 +9,7 @@ extra="forbid" everywhere: strict-mode structured outputs require
 ``additionalProperties: false``, and the HTTP boundary must reject
 malformed envelopes rather than pass them through.
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -59,7 +60,9 @@ class AskResponse(BaseModel):
     def _envelope_invariants(self) -> "AskResponse":
         if self.refused:
             if self.refusal_reason is None:
-                raise ValueError("refused=true requires one of the three refusal reasons")
+                raise ValueError(
+                    "refused=true requires one of the three refusal reasons"
+                )
         else:
             if self.refusal_reason is not None:
                 raise ValueError("refusal_reason must be null for non-refusals")

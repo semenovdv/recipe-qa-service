@@ -37,9 +37,7 @@ def test_corpus_exists_and_matches_index() -> None:
 def test_corpus_satisfies_contract() -> None:
     config = load_config()
     records = load_records()
-    errors = validate_corpus(
-        records, config["corpus_floor"], config["corpus_ceiling"]
-    )
+    errors = validate_corpus(records, config["corpus_floor"], config["corpus_ceiling"])
     assert errors == [], "\n".join(errors)
 
 

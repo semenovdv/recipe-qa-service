@@ -14,6 +14,7 @@ Offline: the OpenAI client is injected. Contract pinned here:
 - Citations are ordered by first appearance of their quote in the answer.
 - Provider/network errors propagate.
 """
+
 from __future__ import annotations
 
 import json
@@ -29,7 +30,7 @@ RECORDS = [
         "title": "Cookbook:Borscht",
         "source_url": "https://en.wikibooks.org/wiki/Cookbook:Borscht",
         "source_text": "Borscht is a soup of Ukrainian origin. "
-                       "Cook time: about 75 minutes. Main ingredients: beets.",
+        "Cook time: about 75 minutes. Main ingredients: beets.",
     },
     {
         "pageid": 202,
@@ -44,12 +45,15 @@ def model_output(**over):
     d = {
         "kind": "answer",
         "answer": "Borscht is a soup of Ukrainian origin. It takes about 75 minutes. "
-                  "Tarator is a cold cucumber soup.",
+        "Tarator is a cold cucumber soup.",
         "refusal_reason": None,
         "refusal_subreason": "",
         "citations": [
             {"pageid": 101, "quote": "Borscht is a soup of Ukrainian origin."},
-            {"pageid": 202, "quote": "Tarator is a cold cucumber soup popular in Bulgaria."},
+            {
+                "pageid": 202,
+                "quote": "Tarator is a cold cucumber soup popular in Bulgaria.",
+            },
         ],
     }
     d.update(over)
@@ -69,7 +73,9 @@ class FakeCompletions:
 
         class Resp:
             def __init__(self, parsed):
-                self.choices = [type("C", (), {"message": type("M", (), {"parsed": parsed})()})()]
+                self.choices = [
+                    type("C", (), {"message": type("M", (), {"parsed": parsed})()})()
+                ]
 
         return Resp(item)
 
@@ -82,7 +88,9 @@ class FakeClient:
 
 class TestHappyPath:
     def test_returns_ask_response_with_citations(self):
-        out = generate("tell me about borscht", RECORDS, client=FakeClient([model_output()]))
+        out = generate(
+            "tell me about borscht", RECORDS, client=FakeClient([model_output()])
+        )
         assert isinstance(out, AskResponse)
         assert out.refused is False
         assert out.refusal_reason is None
@@ -96,15 +104,17 @@ class TestHappyPath:
         swapped = model_output(citations=list(reversed(model_output()["citations"])))
         out = generate("q", RECORDS, client=FakeClient([swapped]))
         urls = [c.url for c in out.citations]
-        assert urls.index("https://en.wikibooks.org/wiki/Cookbook:Borscht") < urls.index(
-            "https://en.wikibooks.org/wiki/Cookbook:Tarator"
-        )
+        assert urls.index(
+            "https://en.wikibooks.org/wiki/Cookbook:Borscht"
+        ) < urls.index("https://en.wikibooks.org/wiki/Cookbook:Tarator")
 
     def test_duplicate_pageid_citations_deduplicated(self):
-        doubled = model_output(citations=[
-            {"pageid": 101, "quote": "Borscht is a soup of Ukrainian origin."},
-            {"pageid": 101, "quote": "Cook time: about 75 minutes."},
-        ])
+        doubled = model_output(
+            citations=[
+                {"pageid": 101, "quote": "Borscht is a soup of Ukrainian origin."},
+                {"pageid": 101, "quote": "Cook time: about 75 minutes."},
+            ]
+        )
         out = generate("q", RECORDS, client=FakeClient([doubled]))
         assert len(out.citations) == 1
 
@@ -125,7 +135,9 @@ class TestEvidenceGate:
         assert "⟦" not in result.answer
 
     def test_fabricated_quote_dropped_and_answer_demoted_to_refusal(self):
-        bad = model_output(citations=[{"pageid": 101, "quote": "Borscht was invented in 1832."}])
+        bad = model_output(
+            citations=[{"pageid": 101, "quote": "Borscht was invented in 1832."}]
+        )
         client = FakeClient([bad, bad])
         out = generate("q", RECORDS, client=client)
         assert len(client.chat.completions.calls) == 2
@@ -140,36 +152,57 @@ class TestEvidenceGate:
         assert out.refused is True and out.refusal_reason == "out_of_corpus"
 
     def test_one_bad_citation_keeps_the_valid_one(self):
-        mixed = model_output(citations=[
-            {"pageid": 101, "quote": "not in the source at all"},
-            {"pageid": 202, "quote": "Tarator is a cold cucumber soup popular in Bulgaria."},
-        ])
+        mixed = model_output(
+            citations=[
+                {"pageid": 101, "quote": "not in the source at all"},
+                {
+                    "pageid": 202,
+                    "quote": "Tarator is a cold cucumber soup popular in Bulgaria.",
+                },
+            ]
+        )
         out = generate("q", RECORDS, client=FakeClient([mixed]))
         assert out.refused is False
-        assert [c.url for c in out.citations] == ["https://en.wikibooks.org/wiki/Cookbook:Tarator"]
+        assert [c.url for c in out.citations] == [
+            "https://en.wikibooks.org/wiki/Cookbook:Tarator"
+        ]
 
     def test_whitespace_collapsed_quotes_verify(self):
-        ok = model_output(citations=[
-            {"pageid": 101, "quote": "Borscht  is a soup\nof Ukrainian origin."},
-        ])
+        ok = model_output(
+            citations=[
+                {"pageid": 101, "quote": "Borscht  is a soup\nof Ukrainian origin."},
+            ]
+        )
         out = generate("q", RECORDS, client=FakeClient([ok]))
         assert out.refused is False
 
 
 class TestRefusals:
     def test_refusal_passthrough(self):
-        out = generate("what is the stock price", RECORDS, client=FakeClient([model_output(
-            kind="refusal", answer="I can only answer recipe questions.",
-            refusal_reason="out_of_domain")]))
+        out = generate(
+            "what is the stock price",
+            RECORDS,
+            client=FakeClient(
+                [
+                    model_output(
+                        kind="refusal",
+                        answer="I can only answer recipe questions.",
+                        refusal_reason="out_of_domain",
+                    )
+                ]
+            ),
+        )
         assert out.refused is True
         assert out.refusal_reason == "out_of_domain"
         assert out.citations == []
 
     def test_invalid_reason_retried_then_raises(self):
-        client = FakeClient([
-            model_output(kind="refusal", refusal_reason="because"),
-            model_output(kind="refusal", refusal_reason="also-bad"),
-        ])
+        client = FakeClient(
+            [
+                model_output(kind="refusal", refusal_reason="because"),
+                model_output(kind="refusal", refusal_reason="also-bad"),
+            ]
+        )
         with pytest.raises(GenerationError):
             generate("q", RECORDS, client=client)
         assert len(client.chat.completions.calls) == 2

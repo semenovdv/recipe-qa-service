@@ -12,6 +12,7 @@ Connection handling is intentionally tiny: the retriever opens a
 connection per search (psycopg pools can come later; request volume here
 does not justify one).
 """
+
 from __future__ import annotations
 
 import re
@@ -33,9 +34,12 @@ SELECT 'diet_tags', array_agg(DISTINCT t) FROM recipes, unnest(diet_tags) AS t
 # FilterSpec (field, op) -> SQL predicate template with a named parameter.
 _WHERE_TEMPLATES: dict[tuple[str, str], str] = {
     ("ingredients", "contains"): "EXISTS (SELECT 1 FROM unnest(ingredients) ing "
-                                 "WHERE ing ILIKE %(req_{i})s)",
-    ("ingredients", "not_contains"): "NOT EXISTS (SELECT 1 FROM unnest(ingredients) ing "
-                                      "WHERE ing ILIKE %(req_{i})s)",
+    "WHERE ing ILIKE %(req_{i})s)",
+    (
+        "ingredients",
+        "not_contains",
+    ): "NOT EXISTS (SELECT 1 FROM unnest(ingredients) ing "
+    "WHERE ing ILIKE %(req_{i})s)",
     ("cuisine", "eq"): "cuisine = %(req_{i})s",
     ("dish_type", "eq"): "dish_type = %(req_{i})s",
     ("diet_tags", "any"): "diet_tags && %(req_{i})s::text[]",
@@ -83,14 +87,14 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
     where, _ = plan_to_where(plan)
     vec_rank = (
         "ROW_NUMBER() OVER (ORDER BY embedding <=> %(query_vec)s::vector)"
-        if embed_query else "NULL"
+        if embed_query
+        else "NULL"
     )
     dense_distance = (
         "embedding <=> %(query_vec)s::vector" if embed_query else "NULL::float"
     )
     order_clause = (
-        "dense_distance ASC, pageid ASC" if embed_query
-        else "fts_rank DESC, pageid ASC"
+        "dense_distance ASC, pageid ASC" if embed_query else "fts_rank DESC, pageid ASC"
     )
     sql = f"""
     WITH filtered AS (
@@ -128,7 +132,8 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
 def relevant_records(records: list[dict]) -> list[dict]:
     """Keep only records that pass the documented relevance gate."""
     return [
-        record for record in records
+        record
+        for record in records
         if (record.get("fts_rank") or 0) > 0
         or (
             record.get("dense_distance") is not None
@@ -178,6 +183,7 @@ def plan_to_params(
 # ---------------------------------------------------------------------------
 # Live execution
 # ---------------------------------------------------------------------------
+
 
 def load_vocabularies(conn) -> dict[str, set[str]]:
     """Corpus-derived vocabularies for FilterSpec normalization (SQL side)."""

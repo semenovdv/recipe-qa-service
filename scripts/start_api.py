@@ -4,6 +4,7 @@ This keeps a single API image self-starting on Docker platforms that do not
 support a separate one-shot seed job. The seeder is idempotent, so repeating
 it is safe and preserves the repository as the source of truth.
 """
+
 from __future__ import annotations
 
 import os

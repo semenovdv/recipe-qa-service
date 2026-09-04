@@ -6,14 +6,25 @@ upsert SQL, and corpus vocabularies. Connection handling lives in
 scripts/db_seed.py; SQL translation of FilterSpec arrives with the
 retriever (tested there).
 """
+
 from __future__ import annotations
 
 EMBEDDING_DIM = 1536  # text-embedding-3-small
 
 _COLUMNS = (
-    "pageid", "title", "source_url", "corpus_version", "time_minutes",
-    "servings", "cuisine", "dish_type", "diet_tags", "ingredients",
-    "source_text", "search_text", "embedding",
+    "pageid",
+    "title",
+    "source_url",
+    "corpus_version",
+    "time_minutes",
+    "servings",
+    "cuisine",
+    "dish_type",
+    "diet_tags",
+    "ingredients",
+    "source_text",
+    "search_text",
+    "embedding",
 )
 
 

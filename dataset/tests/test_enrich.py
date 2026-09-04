@@ -25,6 +25,7 @@ from dataset.enrich import (
 # Fixture: a minimal deterministic record shaped like a real corpus record.
 # ---------------------------------------------------------------------------
 
+
 def _record(**overrides: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
         "pageid": 4991,
@@ -80,18 +81,22 @@ def _llm_payload(**overrides: Any) -> dict[str, Any]:
 # file_slug
 # ---------------------------------------------------------------------------
 
+
 class TestFileSlug:
     def test_strips_prefix_and_lowercases(self) -> None:
         assert file_slug("Cookbook:Bengal Potatoes") == "bengal_potatoes"
 
     def test_replaces_spaces_and_colons(self) -> None:
-        assert file_slug("Cookbook:John's Soup") == "johns_soup" or \
-            file_slug("Cookbook:John's Soup") == "john_s_soup"
+        assert (
+            file_slug("Cookbook:John's Soup") == "johns_soup"
+            or file_slug("Cookbook:John's Soup") == "john_s_soup"
+        )
 
 
 # ---------------------------------------------------------------------------
 # derived_fields: exact text windows per field
 # ---------------------------------------------------------------------------
+
 
 class TestDerivedFields:
     def test_time_field_points_at_recipesummary_time(self) -> None:
@@ -124,6 +129,7 @@ class TestDerivedFields:
 # build_messages: prompt shape
 # ---------------------------------------------------------------------------
 
+
 class TestBuildMessages:
     def test_system_prompt_contains_core_rules(self) -> None:
         msgs = build_messages(_record(), derived_fields(_record()))
@@ -153,6 +159,7 @@ class TestBuildMessages:
 # coerce_llm_payload: schema tolerance + cleanliness
 # ---------------------------------------------------------------------------
 
+
 class TestCoercePayload:
     def test_valid_payload_passes_through(self) -> None:
         out = coerce_llm_payload(_llm_payload())
@@ -178,6 +185,7 @@ class TestCoercePayload:
 # ---------------------------------------------------------------------------
 # make_enriched_record: merge + provenance invariants
 # ---------------------------------------------------------------------------
+
 
 class TestMakeEnrichedRecord:
     def test_identity_fields_copied_from_source(self) -> None:
@@ -208,7 +216,9 @@ class TestMakeEnrichedRecord:
         payload = _llm_payload(time_minutes=45, time_evidence=None)
         enriched = make_enriched_record(_record(), payload, "test-model")
         assert enriched["summary"]["time_minutes"] is None
-        assert enriched["enrichment"]["provenance"]["time_minutes"]["source"] == "dropped"
+        assert (
+            enriched["enrichment"]["provenance"]["time_minutes"]["source"] == "dropped"
+        )
 
     def test_time_null_and_extracted_are_allowed(self) -> None:
         base = make_enriched_record(
@@ -217,15 +227,23 @@ class TestMakeEnrichedRecord:
         assert base["summary"]["time_minutes"] is None
 
         src = make_enriched_record(
-            _record(summary={"category": "Side dish recipes", "servings": "4–6",
-                             "time_minutes": None, "rating": None}),
+            _record(
+                summary={
+                    "category": "Side dish recipes",
+                    "servings": "4–6",
+                    "time_minutes": None,
+                    "rating": None,
+                }
+            ),
             _llm_payload(time_minutes=35, time_evidence="time=30–60 minutes"),
             "test-model",
         )
         # Even with a quoted window, ambiguous range text is guarded away in code.
         assert src["summary"]["time_minutes"] is None
 
-    def test_extracted_time_kept_only_with_evidence_and_unambiguous_source(self) -> None:
+    def test_extracted_time_kept_only_with_evidence_and_unambiguous_source(
+        self,
+    ) -> None:
         rec = _record()
         rec["summary"]["time_minutes"] = None
         rec["source_text"] = rec["source_text"].replace(
@@ -240,19 +258,21 @@ class TestMakeEnrichedRecord:
 
     def test_cuisine_extracted_vs_inferred(self) -> None:
         rec = _record()  # source contains "[[Category:Indian recipes]]"
-        enriched = make_enriched_record(rec, _llm_payload(cuisine="Indian"),
-                                        "test-model")
+        enriched = make_enriched_record(
+            rec, _llm_payload(cuisine="Indian"), "test-model"
+        )
         assert enriched["enrichment"]["provenance"]["cuisine"]["source"] == "extracted"
 
         rec2 = _record()
         # remove every hint of the cuisine: prose AND category links
-        rec2["source_text"] = rec2["source_text"].replace(
-            "an Indian side dish", "a hearty dish"
-        ).replace(
-            "[[Category:Indian recipes]]", "[[Category:Side dishes]]"
+        rec2["source_text"] = (
+            rec2["source_text"]
+            .replace("an Indian side dish", "a hearty dish")
+            .replace("[[Category:Indian recipes]]", "[[Category:Side dishes]]")
         )
-        enriched2 = make_enriched_record(rec2, _llm_payload(cuisine="Indian"),
-                                         "test-model")
+        enriched2 = make_enriched_record(
+            rec2, _llm_payload(cuisine="Indian"), "test-model"
+        )
         assert enriched2["enrichment"]["provenance"]["cuisine"]["source"] == "inferred"
 
     def test_existing_summary_values_are_never_downgraded(self) -> None:
@@ -261,18 +281,25 @@ class TestMakeEnrichedRecord:
         payload = _llm_payload(time_minutes=10, time_evidence="some quote")
         enriched = make_enriched_record(rec, payload, "test-model")
         assert enriched["summary"]["time_minutes"] == 75
-        assert enriched["enrichment"]["provenance"]["time_minutes"]["source"] == "source_record"
+        assert (
+            enriched["enrichment"]["provenance"]["time_minutes"]["source"]
+            == "source_record"
+        )
 
     def test_ingredients_fallback_to_record_when_llm_omits(self) -> None:
         payload = _llm_payload(ingredients_normalized=None)
         enriched = make_enriched_record(_record(), payload, "test-model")
         assert enriched["ingredients_normalized"] == _record()["ingredients"]
-        assert enriched["enrichment"]["provenance"]["ingredients_normalized"]["source"] == "source_record"
+        assert (
+            enriched["enrichment"]["provenance"]["ingredients_normalized"]["source"]
+            == "source_record"
+        )
 
 
 # ---------------------------------------------------------------------------
 # validate_enriched: the derived-layer contract
 # ---------------------------------------------------------------------------
+
 
 class TestValidateEnriched:
     def test_valid_record_passes(self) -> None:

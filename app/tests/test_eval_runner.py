@@ -7,7 +7,12 @@ def test_golden_set_has_required_case_count_and_categories():
     cases = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))
     assert 12 <= len(cases) <= 15
     categories = {case["category"] for case in cases}
-    assert {"direct recipe", "combined constraints", "out of domain", "safety/allergy"} <= categories
+    assert {
+        "direct recipe",
+        "combined constraints",
+        "out of domain",
+        "safety/allergy",
+    } <= categories
 
 
 def test_eval_validates_response_contract_and_expected_source():
@@ -17,10 +22,12 @@ def test_eval_validates_response_contract_and_expected_source():
     }
     body = {
         "answer": "supported",
-        "citations": [{
-            "title": corpus[41709]["title"],
-            "url": corpus[41709]["url"],
-        }],
+        "citations": [
+            {
+                "title": corpus[41709]["title"],
+                "url": corpus[41709]["url"],
+            }
+        ],
         "refused": False,
         "refusal_reason": None,
     }

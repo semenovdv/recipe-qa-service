@@ -70,7 +70,9 @@ class TestSummary:
         assert summary["category"] == "Soup recipes"
 
     def test_missing_optional_fields_are_none(self) -> None:
-        content = page_content(APPLE_VARIANTS, 93175)  # Apple Crisp I: no Time/Servings/Rating
+        content = page_content(
+            APPLE_VARIANTS, 93175
+        )  # Apple Crisp I: no Time/Servings/Rating
         summary = extract_summary(content)
         assert summary["time_minutes"] is None
         assert summary["servings"] is None
@@ -86,8 +88,12 @@ class TestSummary:
 
     def test_no_summary_template(self) -> None:
         summary = extract_summary("==Ingredients==\n* salt")
-        assert summary == {"category": None, "servings": None,
-                           "time_minutes": None, "rating": None}
+        assert summary == {
+            "category": None,
+            "servings": None,
+            "time_minutes": None,
+            "rating": None,
+        }
 
 
 class TestTimeParsing:
@@ -175,19 +181,25 @@ class TestMetadata:
         assert extract_title(page) == "Cookbook:Borscht"
 
     def test_canonical_url(self) -> None:
-        assert (canonical_url("Cookbook:Borscht")
-                == "https://en.wikibooks.org/wiki/Cookbook:Borscht")
+        assert (
+            canonical_url("Cookbook:Borscht")
+            == "https://en.wikibooks.org/wiki/Cookbook:Borscht"
+        )
 
     def test_canonical_url_encodes_spaces_and_non_ascii(self) -> None:
-        assert (canonical_url("Cookbook:Borscht Ø")
-                == "https://en.wikibooks.org/wiki/Cookbook:Borscht_%C3%98")
+        assert (
+            canonical_url("Cookbook:Borscht Ø")
+            == "https://en.wikibooks.org/wiki/Cookbook:Borscht_%C3%98"
+        )
 
     def test_variant_group(self) -> None:
         assert normalize_variant_group("Cookbook:Apple Crisp I") == "apple crisp"
         assert normalize_variant_group("Cookbook:Apple Crisp II") == "apple crisp"
         assert normalize_variant_group("Cookbook:Borscht") == "borscht"
-        assert normalize_variant_group("Cookbook:Palatschinken (Czech/Austrian Crepes)") \
+        assert (
+            normalize_variant_group("Cookbook:Palatschinken (Czech/Austrian Crepes)")
             == "palatschinken"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +214,9 @@ class TestFullParse:
         assert record["pageid"] == 6470
         assert record["title"] == "Cookbook:Borscht"
         assert record["revid"] == page["revisions"][0]["revid"]
-        assert record["url"].startswith("https://en.wikibooks.org/wiki/Cookbook:Borscht")
+        assert record["url"].startswith(
+            "https://en.wikibooks.org/wiki/Cookbook:Borscht"
+        )
         assert record["summary"]["time_minutes"] == 75
         assert len(record["ingredients"]) >= 5
         assert len(record["steps"]) >= 4

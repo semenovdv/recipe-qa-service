@@ -10,6 +10,7 @@ construction fails, the app keeps ``pipeline = None`` and /ask answers
 with the honest 503 dependency-unavailable problem (§7.3) — never a
 disguised answer or refusal. Tests inject fakes via set_pipeline().
 """
+
 from __future__ import annotations
 
 from typing import Protocol
@@ -20,7 +21,9 @@ REFUSAL_REASONS = frozenset({"out_of_corpus", "out_of_domain", "safety"})
 
 
 class Pipeline(Protocol):
-    def answer(self, question: str, request_id: str, progress=None, advanced: bool = False) -> dict:
+    def answer(
+        self, question: str, request_id: str, progress=None, advanced: bool = False
+    ) -> dict:
         """Return an AskResponse-shaped dict (§7.1 envelope)."""
         ...
 
@@ -49,6 +52,7 @@ def set_default_pipeline(pipeline: Pipeline | None) -> None:
 # ---------------------------------------------------------------------------
 # Real implementation
 # ---------------------------------------------------------------------------
+
 
 class PipelineUnavailable(Exception):
     """An infrastructure dependency failed (extraction/retrieval/generation).
@@ -87,16 +91,25 @@ class LunaPipeline:
                 f"corpus version mismatch: db={db_version!r} committed={committed!r}"
             )
 
-    def answer(self, question: str, request_id: str, progress=None, advanced: bool = False) -> dict:
-        from app.extract import ExtractionError, UnsupportedConstraintError, extract_plan
+    def answer(
+        self, question: str, request_id: str, progress=None, advanced: bool = False
+    ) -> dict:
+        from app.extract import (
+            ExtractionError,
+            UnsupportedConstraintError,
+            extract_plan,
+        )
         from app.generate import GenerationError, generate
 
         trace = _new_trace()
         try:
             plan = _timed(
-                trace, "extract", lambda: extract_plan(
+                trace,
+                "extract",
+                lambda: extract_plan(
                     question, client=self._client, vocabularies=self._vocabularies
-                ), progress,
+                ),
+                progress,
             )
             _set_trace_detail(trace, "extract", _plan_summary(plan))
             _notify(progress, trace)
@@ -128,7 +141,9 @@ class LunaPipeline:
                 "embed",
                 lambda: self._client.embeddings.create(
                     model="text-embedding-3-small", input=[plan.search_query]
-                ).data[0].embedding,
+                )
+                .data[0]
+                .embedding,
                 progress,
             )
             records = _timed(
@@ -136,11 +151,13 @@ class LunaPipeline:
                 "retrieve",
                 lambda: self._retrieve.search(
                     plan, query_vec, self._settings.database_url
-                ), progress,
+                ),
+                progress,
             )
             self._log.info(
                 "request_id=%s retrieval_ids=%s",
-                request_id, [r["pageid"] for r in records],
+                request_id,
+                [r["pageid"] for r in records],
             )
         except UnsupportedConstraintError:
             _skip_after(trace, "extract")
@@ -150,9 +167,7 @@ class LunaPipeline:
                 trace,
             )
         except (ExtractionError, self._retrieve.RetrievalError) as exc:
-            raise PipelineUnavailable(
-                f"{type(exc).__name__}: {exc}"
-            ) from exc
+            raise PipelineUnavailable(f"{type(exc).__name__}: {exc}") from exc
         except Exception as exc:  # noqa: BLE001 — provider failures are 503s
             raise PipelineUnavailable(f"upstream request failed: {exc}") from exc
 
@@ -185,7 +200,8 @@ class LunaPipeline:
                 "generate",
                 lambda: (
                     generate(question, records, client=self._client, inline_links=True)
-                    if advanced else generate(question, records, client=self._client)
+                    if advanced
+                    else generate(question, records, client=self._client)
                 ),
                 progress,
             )
@@ -200,17 +216,44 @@ def _refusal(answer: str, reason: str, trace: list[dict] | None = None) -> dict:
     from app.schemas import AskResponse
 
     return AskResponse(
-        answer=answer, citations=[], refused=True, refusal_reason=reason,
+        answer=answer,
+        citations=[],
+        refused=True,
+        refusal_reason=reason,
         trace=trace or [],
     ).model_dump()
 
 
 def _new_trace() -> list[dict]:
     return [
-        {"key": "extract", "label": "First LLM request · query plan", "status": "pending", "duration_ms": None, "detail": ""},
-        {"key": "embed", "label": "LLM embeddings", "status": "pending", "duration_ms": None, "detail": ""},
-        {"key": "retrieve", "label": "Database · top 15 by embedding", "status": "pending", "duration_ms": None, "detail": ""},
-        {"key": "generate", "label": "Second LLM request · answer", "status": "pending", "duration_ms": None, "detail": ""},
+        {
+            "key": "extract",
+            "label": "First LLM request · query plan",
+            "status": "pending",
+            "duration_ms": None,
+            "detail": "",
+        },
+        {
+            "key": "embed",
+            "label": "LLM embeddings",
+            "status": "pending",
+            "duration_ms": None,
+            "detail": "",
+        },
+        {
+            "key": "retrieve",
+            "label": "Database · top 15 by embedding",
+            "status": "pending",
+            "duration_ms": None,
+            "detail": "",
+        },
+        {
+            "key": "generate",
+            "label": "Second LLM request · answer",
+            "status": "pending",
+            "duration_ms": None,
+            "detail": "",
+        },
     ]
 
 
@@ -243,10 +286,7 @@ def _set_trace_detail(trace: list[dict], key: str, detail: str) -> None:
 
 def _plan_summary(plan) -> str:
     """Compact, operator-readable QueryPlan summary without the full prompt."""
-    filters = [
-        f"{req.field} {req.op}={req.value}"
-        for req in plan.requirements
-    ]
+    filters = [f"{req.field} {req.op}={req.value}" for req in plan.requirements]
     query = plan.search_query or "—"
     suffix = "; ".join(filters) if filters else "no filters"
     return f"intent={plan.intent}; query={query}; {suffix}"[:240]

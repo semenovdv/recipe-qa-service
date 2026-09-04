@@ -22,7 +22,9 @@ def cand(pageid: int, title: str, category: str) -> Candidate:
 
 
 UKRAINIAN = [
-    cand(85867, "Cookbook:Cabbage Rolls in Tomato Sauce (Holubtsi)", "Ukrainian recipes"),
+    cand(
+        85867, "Cookbook:Cabbage Rolls in Tomato Sauce (Holubtsi)", "Ukrainian recipes"
+    ),
     cand(16649, "Cookbook:Ukrainian Cabbage Soup (Kapusniak)", "Ukrainian recipes"),
     cand(18447, "Cookbook:Ukrainian Cornmeal Stuffing (Nachynka)", "Ukrainian recipes"),
 ]
@@ -47,9 +49,15 @@ class TestFilterCandidates:
     def test_meta_pages_excluded(self) -> None:
         candidates = DESSERTS + META
         kept = filter_candidates(candidates)
-        assert all(c.title not in {"Cookbook:Ingredients",
-                                   "Cookbook:Standard Units of Measurements",
-                                   "Cookbook:Conversion tables"} for c in kept)
+        assert all(
+            c.title
+            not in {
+                "Cookbook:Ingredients",
+                "Cookbook:Standard Units of Measurements",
+                "Cookbook:Conversion tables",
+            }
+            for c in kept
+        )
         assert {c.pageid for c in kept} == {201, 202, 203}
 
     def test_case_insensitive_meta_match(self) -> None:
@@ -65,8 +73,11 @@ class TestSelectCandidates:
         counts: dict[str, int] = {}
         for c in selected:
             counts[c.category] = counts.get(c.category, 0) + 1
-        assert counts == {"Ukrainian recipes": 2, "Indian recipes": 2,
-                          "Dessert recipes": 2}
+        assert counts == {
+            "Ukrainian recipes": 2,
+            "Indian recipes": 2,
+            "Dessert recipes": 2,
+        }
 
     def test_target_count_overall(self) -> None:
         quotas = {"Ukrainian recipes": 3, "Indian recipes": 3, "Dessert recipes": 3}
@@ -83,8 +94,9 @@ class TestSelectCandidates:
 
     def test_dedupe_by_pageid(self) -> None:
         # same page listed under two categories (cabbage rolls in both)
-        duplicated = UKRAINIAN + [cand(16649, "Cookbook:Ukrainian Cabbage Soup (Kapusniak)",
-                                       "Soup recipes")]
+        duplicated = UKRAINIAN + [
+            cand(16649, "Cookbook:Ukrainian Cabbage Soup (Kapusniak)", "Soup recipes")
+        ]
         extra = [
             cand(401, "Cookbook:Kapusniak II", "Soup recipes"),
             cand(402, "Cookbook:Borscht", "Soup recipes"),
@@ -116,8 +128,11 @@ class TestSelectCandidates:
         for c in selected:
             if c.category not in categories_in_order:
                 categories_in_order.append(c.category)
-        assert categories_in_order == ["Dessert recipes", "Indian recipes",
-                                       "Ukrainian recipes"]
+        assert categories_in_order == [
+            "Dessert recipes",
+            "Indian recipes",
+            "Ukrainian recipes",
+        ]
 
     def test_target_below_floor_raises(self) -> None:
         quotas = {"Ukrainian recipes": 3}

@@ -3,6 +3,7 @@
 Errors must never expose stack traces, prompts, API keys, provider
 responses, or local paths. Every problem carries an opaque request_id.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -33,6 +34,7 @@ def problem_body(p: Problem) -> dict:
 
 
 # Canonical problems used across the app (§7.3 expected statuses)
+
 
 def invalid_request(detail: str) -> Problem:
     return Problem(400, "invalid-request", "Invalid request", detail)

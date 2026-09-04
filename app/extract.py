@@ -10,6 +10,7 @@ second failure raises ``ExtractionError`` — mapped upstream to the honest
 503 ``error`` path, never to a fabricated answer or refusal. Provider
 errors (network, auth) are not converted into plan errors; they propagate.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -63,11 +64,13 @@ def build_messages(question: str, error_hint: str | None = None) -> list[dict]:
         {"role": "user", "content": question},
     ]
     if error_hint:
-        messages.append({
-            "role": "user",
-            "content": f"Your previous plan was rejected: {error_hint}. "
-                       f"Return a corrected plan in the same JSON format.",
-        })
+        messages.append(
+            {
+                "role": "user",
+                "content": f"Your previous plan was rejected: {error_hint}. "
+                f"Return a corrected plan in the same JSON format.",
+            }
+        )
     return messages
 
 
@@ -124,6 +127,8 @@ def extract_plan(
             raise RuntimeError(f"extraction call failed: {exc}") from exc
 
     message = f"extraction failed after {MAX_ATTEMPTS} attempts: {last_error}"
-    if isinstance(last_error, FilterSpecError) and "not in the corpus vocabulary" in str(last_error):
+    if isinstance(
+        last_error, FilterSpecError
+    ) and "not in the corpus vocabulary" in str(last_error):
         raise UnsupportedConstraintError(message)
     raise ExtractionError(message)

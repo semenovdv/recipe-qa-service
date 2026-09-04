@@ -18,11 +18,19 @@ JSON schema handed to the OpenAI structured-outputs API.
 ``FilterSpecError`` remains the public error type: Pydantic ValidationErrors
 are bridged into it so callers need one exception.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal, Tuple
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 # Whitelist: field -> allowed ops -> expected value shape.
 FIELD_OPS: dict[str, dict[str, str]] = {
@@ -60,8 +68,13 @@ class Requirement(BaseModel):
     # Literal types: the JSON schema exposes the whitelist to the model as
     # enums, so invalid fields/ops are rejected before custom validators.
     field: Literal[
-        "ingredients", "cuisine", "dish_type", "diet_tags",
-        "time_minutes", "servings", "title",
+        "ingredients",
+        "cuisine",
+        "dish_type",
+        "diet_tags",
+        "time_minutes",
+        "servings",
+        "title",
     ]
     op: Literal["contains", "not_contains", "eq", "any", "all", "lte", "gte"]
     # Closed union (not Any): OpenAI strict mode requires a concrete type
@@ -85,12 +98,16 @@ class Requirement(BaseModel):
         v = self.value
         if shape == "string":
             if not isinstance(v, str) or not v.strip():
-                raise ValueError(f"{self.field} {self.op} requires a non-empty string value")
+                raise ValueError(
+                    f"{self.field} {self.op} requires a non-empty string value"
+                )
         elif shape == "number":
             if isinstance(v, bool) or not isinstance(v, (int, float)):
                 raise ValueError(f"{self.field} {self.op} requires a number")
             if v < 0:
-                raise ValueError(f"{self.field} {self.op} requires a non-negative number")
+                raise ValueError(
+                    f"{self.field} {self.op} requires a non-negative number"
+                )
         else:  # list_of_strings
             if (
                 not isinstance(v, list)
@@ -154,6 +171,7 @@ class QueryPlan(BaseModel):
 # Parsing — structural validation only (no corpus knowledge)
 # ---------------------------------------------------------------------------
 
+
 def parse_plan(data: object) -> QueryPlan:
     """Validate raw JSON (e.g. an LLM structured output) into a QueryPlan."""
     try:
@@ -180,6 +198,7 @@ def _first_message(exc: ValidationError) -> str:
 # ---------------------------------------------------------------------------
 # Normalization — categorical values against corpus vocabularies
 # ---------------------------------------------------------------------------
+
 
 def _norm(s: str) -> str:
     return s.strip().lower()
@@ -218,6 +237,7 @@ def normalize_plan(
 # ---------------------------------------------------------------------------
 # Evaluation — deterministic, conservative unknowns
 # ---------------------------------------------------------------------------
+
 
 def _norm_ci(v: object) -> str:
     return str(v).strip().lower()
@@ -266,6 +286,7 @@ def evaluate_requirement(req: Requirement, record: dict) -> bool:
 def filter_records(plan: QueryPlan, records: list[dict]) -> list[dict]:
     """AND-combined hard filtering; order preserved (deterministic)."""
     return [
-        r for r in records
+        r
+        for r in records
         if all(evaluate_requirement(req, r) for req in plan.requirements)
     ]

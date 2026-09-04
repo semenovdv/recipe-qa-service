@@ -104,8 +104,10 @@ def select_candidates(
                 continue
             members = by_category[category]
             # find the next member of this category not already selected
-            while cursor[category] < len(members) and members[cursor[category]].pageid \
-                    in selected_pageids:
+            while (
+                cursor[category] < len(members)
+                and members[cursor[category]].pageid in selected_pageids
+            ):
                 cursor[category] += 1
             if cursor[category] >= len(members):
                 # every member either selected or exhausted: this category is done

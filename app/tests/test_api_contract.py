@@ -14,6 +14,7 @@ Contract design:
 Validation / Accept / body-limit behavior is pipeline-independent: it must
 reject before ever reaching the pipeline (AC-08).
 """
+
 from __future__ import annotations
 
 import time
@@ -52,6 +53,7 @@ def problem(body: dict) -> dict:
 # POST /ask — 200 envelope, driven by an injected fake pipeline
 # ---------------------------------------------------------------------------
 
+
 class TestAskEnvelopeWithFakePipeline:
     @pytest.fixture()
     def fake_client(self):
@@ -67,18 +69,29 @@ class TestAskEnvelopeWithFakePipeline:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("application/json")
         body = r.json()
-        assert set(body.keys()) == {"answer", "citations", "refused", "refusal_reason", "trace"}
+        assert set(body.keys()) == {
+            "answer",
+            "citations",
+            "refused",
+            "refusal_reason",
+            "trace",
+        }
         assert body["answer"] == "Boil water by heating it to 100 C."
         assert body["refused"] is False
         assert body["refusal_reason"] is None
         assert body["citations"] == [
-            {"title": "Cookbook:Boiling", "url": "https://en.wikibooks.org/wiki/Cookbook:Boiling"}
+            {
+                "title": "Cookbook:Boiling",
+                "url": "https://en.wikibooks.org/wiki/Cookbook:Boiling",
+            }
         ]
 
     def test_refusal_envelope_invariants(self, fake_client):
         from app.pipeline import set_pipeline
 
-        set_pipeline(fake_client.app, FakePipeline(refused=True, reason="out_of_corpus"))
+        set_pipeline(
+            fake_client.app, FakePipeline(refused=True, reason="out_of_corpus")
+        )
         r = ask(fake_client, "What is the stock price of Apple?")
         assert r.status_code == 200
         body = r.json()
@@ -129,6 +142,7 @@ class FakePipeline:
 # POST /ask — AI not wired yet: explicit dependency-unavailable (§7.3)
 # ---------------------------------------------------------------------------
 
+
 class TestAskPipelineNotReady:
     def test_default_app_returns_503_problem(self, client):
         r = ask(client)
@@ -157,12 +171,15 @@ class TestAskPipelineNotReady:
         set_pipeline(app, SlowPipeline())
         r = ask(TestClient(app, raise_server_exceptions=False))
         assert r.status_code == 503
-        assert problem(r.json())["type"] == "urn:recipe-qa:problem:dependency-unavailable"
+        assert (
+            problem(r.json())["type"] == "urn:recipe-qa:problem:dependency-unavailable"
+        )
 
 
 # ---------------------------------------------------------------------------
 # POST /ask — validation errors, rejected before the pipeline (AC-08)
 # ---------------------------------------------------------------------------
+
 
 class TestAskValidation:
     def test_missing_question_is_400(self, client):
@@ -193,7 +210,9 @@ class TestAskValidation:
         assert problem(response.json())["type"] == "urn:recipe-qa:problem:rate-limited"
 
     def test_wrong_type_is_400(self, client):
-        r = client.post("/ask", json={"question": 42}, headers={"Accept": "application/json"})
+        r = client.post(
+            "/ask", json={"question": 42}, headers={"Accept": "application/json"}
+        )
         assert r.status_code == 400
 
     def test_oversized_question_is_400(self, client):
@@ -239,6 +258,7 @@ class TestAskValidation:
 # POST /ask — protocol errors
 # ---------------------------------------------------------------------------
 
+
 class TestAskProtocol:
     def test_wrong_accept_is_406(self, client):
         r = ask(client, accept="text/html")
@@ -260,6 +280,7 @@ class TestAskProtocol:
 # ---------------------------------------------------------------------------
 # GET /health — §7.2
 # ---------------------------------------------------------------------------
+
 
 class TestHealth:
     def test_healthy(self, client):

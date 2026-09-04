@@ -4,6 +4,7 @@ Read-only view over the committed dataset artifacts. This is intentionally
 separate from the (future) retrieval store: /health must answer without
 touching any database or model.
 """
+
 from __future__ import annotations
 
 import json

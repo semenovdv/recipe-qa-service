@@ -13,6 +13,7 @@ are retried once, then ``GenerationError`` — upstream converts it to the
 misrepresented as a confident 200 refusal. Provider/network errors
 propagate.
 """
+
 from __future__ import annotations
 
 import re
@@ -104,8 +105,9 @@ def _inline_answer(answer: str, citations: dict[int, Citation]) -> str:
     return _MARKER_RE.sub(replace, answer).strip()
 
 
-def build_messages(question: str, records: list[dict],
-                   error_hint: str | None = None) -> list[dict]:
+def build_messages(
+    question: str, records: list[dict], error_hint: str | None = None
+) -> list[dict]:
     record_blocks = []
     for r in records:
         record_blocks.append(
@@ -121,13 +123,15 @@ def build_messages(question: str, records: list[dict],
         {"role": "user", "content": f"Question: {question}"},
     ]
     if error_hint:
-        messages.append({
-            "role": "user",
-            "content": f"Your previous response was rejected: {error_hint}. "
-                       "Return a corrected response in the same JSON format. "
-                       "Copy a short, contiguous quote exactly from source_text "
-                       "and use each source marker at most once.",
-        })
+        messages.append(
+            {
+                "role": "user",
+                "content": f"Your previous response was rejected: {error_hint}. "
+                "Return a corrected response in the same JSON format. "
+                "Copy a short, contiguous quote exactly from source_text "
+                "and use each source marker at most once.",
+            }
+        )
     return messages
 
 
@@ -148,11 +152,15 @@ def _citation_order(answer: str, citations: list[GenerationCitation]) -> list[in
         if c.pageid not in first_pos and pos >= 0:
             first_pos[c.pageid] = pos
     default = len(answer_ws) + 1
-    return sorted({c.pageid for c in citations},
-                  key=lambda pid: (first_pos.get(pid, default), pid))
+    return sorted(
+        {c.pageid for c in citations},
+        key=lambda pid: (first_pos.get(pid, default), pid),
+    )
 
 
-def _to_response(out: GenerationOutput, records: list[dict], inline_links: bool = False) -> AskResponse | None:
+def _to_response(
+    out: GenerationOutput, records: list[dict], inline_links: bool = False
+) -> AskResponse | None:
     """Validate + convert a model output; None means contract-invalid (retry)."""
     by_pageid = {r["pageid"]: r for r in records}
 
@@ -163,7 +171,9 @@ def _to_response(out: GenerationOutput, records: list[dict], inline_links: bool 
         if not answer:
             return None
         return AskResponse(
-            answer=answer, citations=[], refused=True,
+            answer=answer,
+            citations=[],
+            refused=True,
             refusal_reason=out.refusal_reason,
         )
 
@@ -187,13 +197,19 @@ def _to_response(out: GenerationOutput, records: list[dict], inline_links: bool 
     seen: set[int] = set()
     citations = [
         Citation(title=by_pageid[pid]["title"], url=by_pageid[pid]["source_url"])
-        for pid in ordered if not (pid in seen or seen.add(pid))
+        for pid in ordered
+        if not (pid in seen or seen.add(pid))
     ]
     citation_by_pageid = {
         pid: Citation(title=by_pageid[pid]["title"], url=by_pageid[pid]["source_url"])
-        for pid in ordered if pid in by_pageid
+        for pid in ordered
+        if pid in by_pageid
     }
-    answer = _inline_answer(out.answer, citation_by_pageid) if inline_links else _public_answer(out.answer)
+    answer = (
+        _inline_answer(out.answer, citation_by_pageid)
+        if inline_links
+        else _public_answer(out.answer)
+    )
     if not answer:
         return None
     return AskResponse(
@@ -249,8 +265,10 @@ def generate(
         # claims (SPEC §7.3 — must not misrepresent failure as confidence).
         return AskResponse(
             answer="I could not verify an answer against the recipe sources "
-                   "for this question, so I won't guess. Try rephrasing or "
-                   "asking about a recipe that exists in the cookbook.",
-            citations=[], refused=True, refusal_reason="out_of_corpus",
+            "for this question, so I won't guess. Try rephrasing or "
+            "asking about a recipe that exists in the cookbook.",
+            citations=[],
+            refused=True,
+            refusal_reason="out_of_corpus",
         )
     raise GenerationError("generation failed after retries with invalid outputs")

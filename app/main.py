@@ -1,4 +1,5 @@
 """Recipe Q&A Service — FastAPI application (SPEC §7)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -36,10 +37,12 @@ logger = logging.getLogger("recipe_qa")
 if not logging.getLogger().handlers:
     # §10: app logs go to stdout (PaaS-collected); uvicorn configures only
     # its own loggers, so give the root a basic handler for local runs.
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+    )
 
-MAX_QUESTION_CHARS = 1000          # §7.1
-MAX_BODY_BYTES = 64 * 1024         # §7.3: separately enforced body limit → 413
+MAX_QUESTION_CHARS = 1000  # §7.1
+MAX_BODY_BYTES = 64 * 1024  # §7.3: separately enforced body limit → 413
 REQUIRED_ACCEPT = "application/json"  # §7.1: client MUST send exactly this
 MAX_REQUEST_SECONDS = 120
 RATE_LIMIT_COUNT = 10
@@ -103,9 +106,7 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
         if not _allow_request(_rate_limit_key(request)):
             raise rate_limited()
         if request.headers.get("accept") != REQUIRED_ACCEPT:
-            raise not_acceptable(
-                f"this endpoint requires Accept: {REQUIRED_ACCEPT}"
-            )
+            raise not_acceptable(f"this endpoint requires Accept: {REQUIRED_ACCEPT}")
 
         content_type = request.headers.get("content-type", "")
         if content_type.split(";", 1)[0].strip().lower() != "application/json":
@@ -138,15 +139,22 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
                 type(exc).__name__,
             )
             _log_request(request_id, 503, started)
-            raise dependency_unavailable("the answering pipeline is temporarily unavailable") from exc
+            raise dependency_unavailable(
+                "the answering pipeline is temporarily unavailable"
+            ) from exc
         except asyncio.TimeoutError as exc:
             _log_request(request_id, 503, started)
             raise dependency_unavailable("the answering request timed out") from exc
         except Problem as exc:
             _log_request(request_id, exc.status, started)
             raise
-        _log_request(request_id, 200, started, refused=result.refused,
-                     refusal_reason=result.refusal_reason)
+        _log_request(
+            request_id,
+            200,
+            started,
+            refused=result.refused,
+            refusal_reason=result.refusal_reason,
+        )
         return JSONResponse(result.model_dump())
 
     @app.post("/ask/stream")
@@ -175,7 +183,9 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
         events: asyncio.Queue[dict] = asyncio.Queue()
 
         def progress(steps: list[dict]) -> None:
-            loop.call_soon_threadsafe(events.put_nowait, {"type": "trace", "steps": steps})
+            loop.call_soon_threadsafe(
+                events.put_nowait, {"type": "trace", "steps": steps}
+            )
 
         async def run_pipeline() -> None:
             try:
@@ -188,8 +198,17 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
                 result = _validate_envelope(raw_result)
                 await events.put({"type": "result", "response": result.model_dump()})
             except Exception as exc:  # noqa: BLE001 — stream never leaks internals
-                logger.warning("stream failed request_id=%s error_type=%s", request_id, type(exc).__name__)
-                await events.put({"type": "error", "detail": "The answering service is temporarily unavailable."})
+                logger.warning(
+                    "stream failed request_id=%s error_type=%s",
+                    request_id,
+                    type(exc).__name__,
+                )
+                await events.put(
+                    {
+                        "type": "error",
+                        "detail": "The answering service is temporarily unavailable.",
+                    }
+                )
 
         async def generate_events():
             from app.pipeline import _new_trace
@@ -203,10 +222,14 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
                     except asyncio.TimeoutError:
                         if task.done() and events.empty():
                             break
-                        yield _ndjson({
-                            "type": "heartbeat",
-                            "elapsed_ms": round((time.perf_counter() - started) * 1000),
-                        })
+                        yield _ndjson(
+                            {
+                                "type": "heartbeat",
+                                "elapsed_ms": round(
+                                    (time.perf_counter() - started) * 1000
+                                ),
+                            }
+                        )
                         continue
                     yield _ndjson(event)
                     if event["type"] in {"result", "error"}:
@@ -282,6 +305,7 @@ def _persist_request_log(event: dict[str, object]) -> None:
     """Best-effort durable copy; logging must never take down /ask."""
     try:
         from app.settings import get_settings
+
         database_url = get_settings().database_url
         if not database_url:
             return
@@ -331,7 +355,9 @@ def _register_error_handlers(app: FastAPI) -> None:
     async def problem_handler(request: Request, exc: Problem) -> JSONResponse:
         logger.warning(
             "problem status=%s type=%s request_id=%s",
-            exc.status, exc.slug, exc.request_id,
+            exc.status,
+            exc.slug,
+            exc.request_id,
         )
         return JSONResponse(problem_body(exc), status_code=exc.status)
 

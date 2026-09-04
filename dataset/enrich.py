@@ -81,8 +81,11 @@ Return JSON only."""
 
 def _summary_window(source_text: str, field_hint: str, limit: int = 400) -> str:
     """Bounded slice of the recipesummary template around a field hint."""
-    match = re.search(r"\{\{\s*recipe[\s_-]*summary\s*\|.*?\}\}", source_text,
-                      re.IGNORECASE | re.DOTALL)
+    match = re.search(
+        r"\{\{\s*recipe[\s_-]*summary\s*\|.*?\}\}",
+        source_text,
+        re.IGNORECASE | re.DOTALL,
+    )
     if not match:
         return ""
     body = match.group(0)
@@ -90,13 +93,16 @@ def _summary_window(source_text: str, field_hint: str, limit: int = 400) -> str:
     if idx == -1:
         return body[:limit]
     start = max(0, idx - 40)
-    return body[start:idx + limit]
+    return body[start : idx + limit]
 
 
 def _ingredients_window(source_text: str, limit: int = 1600) -> str:
     """Window includes the heading itself so quotes stay unambiguous."""
-    match = re.search(r"==+\s*Ingredients\s*==+.*?(?=={2,}|\Z)",
-                      source_text, re.IGNORECASE | re.DOTALL)
+    match = re.search(
+        r"==+\s*Ingredients\s*==+.*?(?=={2,}|\Z)",
+        source_text,
+        re.IGNORECASE | re.DOTALL,
+    )
     if not match:
         return ""
     return match.group(0)[:limit]
@@ -104,12 +110,16 @@ def _ingredients_window(source_text: str, limit: int = 1600) -> str:
 
 def _metadata_window(source_text: str, limit: int = 900) -> str:
     """Category links + first prose paragraph: the hints for cuisine/dish_type/diet."""
-    categories = "\n".join(sorted(
-        m.group(0) for m in
-        re.finditer(r"\[\[\s*Category\s*:[^\]]+\]\]", source_text, re.IGNORECASE)
-    ))[:limit // 2]
+    categories = "\n".join(
+        sorted(
+            m.group(0)
+            for m in re.finditer(
+                r"\[\[\s*Category\s*:[^\]]+\]\]", source_text, re.IGNORECASE
+            )
+        )
+    )[: limit // 2]
     prose_match = re.search(r"^(.*?)(?=={2,})", source_text, re.DOTALL)
-    prose = prose_match.group(1)[:limit // 2] if prose_match else ""
+    prose = prose_match.group(1)[: limit // 2] if prose_match else ""
     return f"{prose}\n{categories}".strip()
 
 
@@ -148,6 +158,7 @@ def derived_fields(record: dict[str, Any]) -> list[dict[str, str]]:
 # JSON schema for Structured Outputs (strict mode)
 # ---------------------------------------------------------------------------
 
+
 def _str_field(description: str) -> dict[str, Any]:
     return {"type": ["string", "null"], "description": description}
 
@@ -161,12 +172,22 @@ def response_schema() -> dict[str, Any]:
             "description": "Clean ingredient names, no quantities, no markup.",
         },
         "cuisine": _str_field("Culinary tradition (e.g. Indian, Italian) or null."),
-        "dish_type": _str_field("Dish category (e.g. soup, dessert, side dish) or null."),
+        "dish_type": _str_field(
+            "Dish category (e.g. soup, dessert, side dish) or null."
+        ),
         "diet_tags": {
             "type": "array",
-            "items": {"type": "string", "enum": [
-                "vegetarian", "vegan", "gluten-free", "dairy-free", "halal", "kosher",
-            ]},
+            "items": {
+                "type": "string",
+                "enum": [
+                    "vegetarian",
+                    "vegan",
+                    "gluten-free",
+                    "dairy-free",
+                    "halal",
+                    "kosher",
+                ],
+            },
             "description": "Diet tags supported by the text; [] when none.",
         },
         "time_minutes": {
@@ -280,7 +301,7 @@ def _matched_quote(value: str, window: str) -> str | None:
     idx = window.lower().find(needle)
     if idx == -1:
         return None
-    return window[idx:idx + len(value.strip())]
+    return window[idx : idx + len(value.strip())]
 
 
 def _time_guard(record: dict[str, Any], payload: dict[str, Any]) -> tuple[str, Any]:
@@ -331,13 +352,15 @@ def make_enriched_record(
     source_servings = record["summary"].get("servings")
     if source_servings:
         servings_value, servings_source = source_servings, "source_record"
-    elif clean["servings"] and _window_supports(clean["servings"] or "",
-                                                windows["servings"]):
+    elif clean["servings"] and _window_supports(
+        clean["servings"] or "", windows["servings"]
+    ):
         servings_value, servings_source = clean["servings"], "extracted"
     else:
         servings_value, servings_source = None, "absent"
-    servings_quote = (clean["servings_evidence"]
-                      if servings_source == "extracted" else None)
+    servings_quote = (
+        clean["servings_evidence"] if servings_source == "extracted" else None
+    )
 
     # --- ingredients -------------------------------------------------------
     # extracted only when every normalized name appears in the markup-stripped
@@ -349,8 +372,9 @@ def make_enriched_record(
     ingredients_quote = None
     raw_lines = "\n".join(record["ingredients_raw"]).lower()
     if clean["ingredients_normalized"]:
-        quotes = [_matched_quote(item, raw_lines)
-                  for item in clean["ingredients_normalized"]]
+        quotes = [
+            _matched_quote(item, raw_lines) for item in clean["ingredients_normalized"]
+        ]
         if all(quotes):
             ingredients_value = clean["ingredients_normalized"]
             ingredients_source = "extracted"
@@ -381,9 +405,11 @@ def make_enriched_record(
         return None, "dropped", None
 
     cuisine_value, cuisine_source, cuisine_quote = classify_quoted(
-        "cuisine", clean["cuisine"])
+        "cuisine", clean["cuisine"]
+    )
     dish_value, dish_source, dish_quote = classify_quoted(
-        "dish_type", clean["dish_type"])
+        "dish_type", clean["dish_type"]
+    )
     # diet_tags: filter each tag individually
     diet_value: list[str] = []
     diet_quotes: list[str] = []
@@ -463,14 +489,33 @@ def make_enriched_record(
 # ---------------------------------------------------------------------------
 
 ENRICHED_REQUIRED_KEYS = (
-    "pageid", "revid", "source_revid", "title", "url", "fetched_at",
-    "categories", "summary", "ingredients_raw", "ingredients",
-    "ingredients_normalized", "steps", "description", "variant_group",
-    "cuisine", "dish_type", "diet_tags", "source_text", "enrichment",
+    "pageid",
+    "revid",
+    "source_revid",
+    "title",
+    "url",
+    "fetched_at",
+    "categories",
+    "summary",
+    "ingredients_raw",
+    "ingredients",
+    "ingredients_normalized",
+    "steps",
+    "description",
+    "variant_group",
+    "cuisine",
+    "dish_type",
+    "diet_tags",
+    "source_text",
+    "enrichment",
 )
 PROVENANCE_FIELDS = {
-    "ingredients_normalized", "cuisine", "dish_type", "diet_tags",
-    "time_minutes", "servings",
+    "ingredients_normalized",
+    "cuisine",
+    "dish_type",
+    "diet_tags",
+    "time_minutes",
+    "servings",
 }
 QUOTED_SOURCES = {"extracted"}
 
@@ -489,22 +534,23 @@ def validate_enriched(record: dict[str, Any]) -> list[str]:
         return ["enrichment.provenance missing"]
     prov = enrichment["provenance"]
     if set(prov.keys()) != PROVENANCE_FIELDS:
-        errors.append(
-            f"provenance fields mismatch: {sorted(prov.keys())}"
-        )
+        errors.append(f"provenance fields mismatch: {sorted(prov.keys())}")
     for field, entry in prov.items():
         if entry.get("source") not in PROVENANCE_SOURCES:
             errors.append(f"provenance.{field}: invalid source {entry.get('source')!r}")
         if entry.get("source") in QUOTED_SOURCES and not entry.get("source_quote"):
-            errors.append(f"provenance.{field}: source_quote required for "
-                          f"{entry.get('source')}")
+            errors.append(
+                f"provenance.{field}: source_quote required for "
+                f"{entry.get('source')}"
+            )
     if record["enrichment"].get("model") is None:
         errors.append("enrichment.model missing")
     if not isinstance(record["diet_tags"], list):
         errors.append("diet_tags must be a list")
     time_val = record["summary"]["time_minutes"]
-    if time_val is not None and (isinstance(time_val, bool)
-                                 or not isinstance(time_val, int) or time_val <= 0):
+    if time_val is not None and (
+        isinstance(time_val, bool) or not isinstance(time_val, int) or time_val <= 0
+    ):
         errors.append("summary.time_minutes must be a positive int or null")
     if prov.get("time_minutes", {}).get("source") == "inferred":
         errors.append("time_minutes provenance 'inferred' is forbidden (spec §4.6)")
@@ -571,8 +617,12 @@ def _cmd_plan() -> int:
     """Show which fields would be enriched, without any API calls."""
     records = _load_corpus()
     fillable = {
-        "time_minutes": 0, "servings": 0, "cuisine": 0,
-        "dish_type": 0, "diet_tags": 0, "ingredients_normalized": 0,
+        "time_minutes": 0,
+        "servings": 0,
+        "cuisine": 0,
+        "dish_type": 0,
+        "diet_tags": 0,
+        "ingredients_normalized": 0,
     }
     for record in records.values():
         if record["summary"].get("time_minutes") is None:
@@ -601,9 +651,11 @@ def _cmd_run(
 
     ENRICHED_DIR.mkdir(exist_ok=True)
     # resume support: skip records already enriched (delete the file to re-run)
-    todo = {pid: rec for pid, rec in records.items()
-            if only_pageid is not None
-            or not (ENRICHED_DIR / f"{pid}.json").exists()}
+    todo = {
+        pid: rec
+        for pid, rec in records.items()
+        if only_pageid is not None or not (ENRICHED_DIR / f"{pid}.json").exists()
+    }
     failures = 0
     for index, (pageid, record) in enumerate(sorted(todo.items()), start=1):
         print(f"[{index}/{len(todo)}] {record['title']} …", flush=True)
@@ -617,7 +669,7 @@ def _cmd_run(
             except Exception as exc:  # noqa: BLE001 — log, backoff, retry
                 print(f"    attempt {attempt} failed: {exc}", flush=True)
                 if attempt < MAX_RETRIES:
-                    time.sleep(2 ** attempt)
+                    time.sleep(2**attempt)
         if enriched is None:
             failures += 1
             print("    SKIPPED after retries", flush=True)
@@ -640,8 +692,10 @@ def _cmd_run(
         time.sleep(REQUEST_DELAY_SECONDS)
 
     if failures:
-        print(f"\n{failures} record(s) failed; enriched layer is incomplete.",
-              file=sys.stderr)
+        print(
+            f"\n{failures} record(s) failed; enriched layer is incomplete.",
+            file=sys.stderr,
+        )
         return 1
     print(f"\nDone: {len(todo)} record(s) enriched into {ENRICHED_DIR}")
     return 0
@@ -681,8 +735,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "plan":
         return _cmd_plan()
     if args.command == "run":
-        return _cmd_run(model, temperature, reasoning_effort,
-                        getattr(args, "record", None))
+        return _cmd_run(
+            model, temperature, reasoning_effort, getattr(args, "record", None)
+        )
     if args.command == "validate":
         return _cmd_validate()
     return 2

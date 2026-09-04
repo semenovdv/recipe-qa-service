@@ -62,7 +62,9 @@ def _record_from_page(page: dict[str, Any], fetched_at: str) -> dict[str, Any]:
     return record
 
 
-def _build_from_pages(pages: list[dict[str, Any]], fetched_at: str) -> list[dict[str, Any]]:
+def _build_from_pages(
+    pages: list[dict[str, Any]], fetched_at: str
+) -> list[dict[str, Any]]:
     """Parse fetched pages into records, dropping and reporting gate failures."""
     records: list[dict[str, Any]] = []
     dropped: list[str] = []
@@ -85,7 +87,9 @@ def _write_corpus(records: list[dict[str, Any]], config: dict[str, Any]) -> str:
 
     for record in records:
         path = RECIPES_DIR / f"{record['pageid']}.json"
-        path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     category_counts: dict[str, int] = {}
     for record in records:
@@ -177,7 +181,11 @@ def cmd_rebuild(config: dict[str, Any]) -> int:
         pages = mw_api.fetch_pages(session, sorted(manifest))
     # pin exact revisions from the manifest (dataset/PLAN.md §5)
     for page in pages:
-        page["revisions"] = [rev for rev in page["revisions"] if rev["revid"] == manifest[str(page["pageid"])]]
+        page["revisions"] = [
+            rev
+            for rev in page["revisions"]
+            if rev["revid"] == manifest[str(page["pageid"])]
+        ]
     pages = [page for page in pages if page.get("revisions")]
     fetched_at = dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     records = _build_from_pages(pages, fetched_at)
@@ -215,7 +223,12 @@ def cmd_verify(config: dict[str, Any]) -> int:
     committed = {r["pageid"]: r for r in load_committed_records()}
     with requests.Session() as session:
         session.headers["User-Agent"] = mw_api.USER_AGENT
-        pages = mw_api.fetch_pages(session, sorted(int(pid) for pid in manifest_path.read_text().strip("{}\" ,\n").split()))
+        pages = mw_api.fetch_pages(
+            session,
+            sorted(
+                int(pid) for pid in manifest_path.read_text().strip('{}" ,\n').split()
+            ),
+        )
     fetched_at = dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     fresh = {r["pageid"]: r for r in _build_from_pages(pages, fetched_at)}
 
@@ -241,12 +254,16 @@ def cmd_analyze(config: dict[str, Any]) -> int:
     records = load_committed_records()
     report = analyze_records(records, config)
     out_path = CORPUS_DIR / "eda_report.json"
-    out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(f"EDA report written: {out_path}")
     return 0
 
 
-def analyze_records(records: list[dict[str, Any]], config: dict[str, Any]) -> dict[str, Any]:
+def analyze_records(
+    records: list[dict[str, Any]], config: dict[str, Any]
+) -> dict[str, Any]:
     """EDA over the corpus: selection-signal decision input (dataset/PLAN.md §8)."""
     count = len(records)
     with_time = [r for r in records if r["summary"].get("time_minutes") is not None]
