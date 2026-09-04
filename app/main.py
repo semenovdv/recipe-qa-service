@@ -18,8 +18,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app import corpus_meta
 from app import pipeline as pipeline_reg
-from app.extract import PROMPT_VERSION as EXTRACT_PROMPT_VERSION
-from app.generate import PROMPT_VERSION as GENERATE_PROMPT_VERSION
 from app.errors import (
     Problem,
     dependency_unavailable,
@@ -27,11 +25,13 @@ from app.errors import (
     invalid_request,
     not_acceptable,
     payload_too_large,
-    rate_limited,
     problem_body,
+    rate_limited,
 )
-from app.schemas import AskResponse
+from app.extract import PROMPT_VERSION as EXTRACT_PROMPT_VERSION
+from app.generate import PROMPT_VERSION as GENERATE_PROMPT_VERSION
 from app.pipeline import PipelineUnavailable
+from app.schemas import AskResponse
 
 logger = logging.getLogger("recipe_qa")
 if not logging.getLogger().handlers:
@@ -332,7 +332,7 @@ def _persist_request_log(event: dict[str, object]) -> None:
                     "error_class": None,
                 },
             )
-    except Exception:  # noqa: BLE001 — observability is non-blocking
+    except Exception:
         logger.warning("request log persistence failed", exc_info=True)
 
 

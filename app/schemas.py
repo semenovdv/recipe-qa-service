@@ -57,7 +57,7 @@ class AskResponse(BaseModel):
     trace: list[TraceStep] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _envelope_invariants(self) -> "AskResponse":
+    def _envelope_invariants(self) -> AskResponse:
         if self.refused:
             if self.refusal_reason is None:
                 raise ValueError(

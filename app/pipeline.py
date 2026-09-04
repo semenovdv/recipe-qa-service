@@ -13,8 +13,8 @@ disguised answer or refusal. Tests inject fakes via set_pipeline().
 
 from __future__ import annotations
 
-from typing import Protocol
 import time
+from typing import Protocol
 
 # The three public refusal reasons (SPEC §7.1 enum).
 REFUSAL_REASONS = frozenset({"out_of_corpus", "out_of_domain", "safety"})
@@ -168,7 +168,7 @@ class LunaPipeline:
             )
         except (ExtractionError, self._retrieve.RetrievalError) as exc:
             raise PipelineUnavailable(f"{type(exc).__name__}: {exc}") from exc
-        except Exception as exc:  # noqa: BLE001 — provider failures are 503s
+        except Exception as exc:
             raise PipelineUnavailable(f"upstream request failed: {exc}") from exc
 
         if not records:
@@ -208,7 +208,7 @@ class LunaPipeline:
             return {**response.model_dump(), "trace": trace}
         except GenerationError as exc:
             raise PipelineUnavailable(f"generation failed: {exc}") from exc
-        except Exception as exc:  # noqa: BLE001 — provider failures are 503s
+        except Exception as exc:
             raise PipelineUnavailable(f"upstream request failed: {exc}") from exc
 
 
@@ -313,13 +313,14 @@ def _committed_corpus_version(index_path: str) -> str | None:
     import json
 
     try:
-        data = json.load(open(index_path, encoding="utf-8"))
+        with open(index_path, encoding="utf-8") as index_file:
+            data = json.load(index_file)
         return data.get("corpus_version")
     except (OSError, ValueError):
         return None
 
 
-def build_default_pipeline() -> "LunaPipeline | None":
+def build_default_pipeline() -> LunaPipeline | None:
     """Composition root: build the real pipeline or report why not."""
     from app.settings import get_settings
 

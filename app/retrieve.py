@@ -73,9 +73,8 @@ def plan_to_where(plan: QueryPlan) -> tuple[str, dict[str, Any]]:
         value = req.value
         if isinstance(value, list):
             value = list(value)
-        elif isinstance(value, str):
-            if req.op in {"contains", "not_contains"}:
-                value = f"%{value}%"
+        elif isinstance(value, str) and req.op in {"contains", "not_contains"}:
+            value = f"%{value}%"
         params[f"req_{i}"] = value
     if not clauses:
         return "TRUE", {}
@@ -220,11 +219,12 @@ def search(
         params["query_vec"] = query_embedding
 
     try:
-        with psycopg.connect(database_url, row_factory=dict_row) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, params)
-                return [dict(r) for r in cur.fetchall()]
-    except Exception as exc:  # noqa: BLE001 — single honest boundary
+        with psycopg.connect(
+            database_url, row_factory=dict_row
+        ) as conn, conn.cursor() as cur:
+            cur.execute(sql, params)
+            return [dict(r) for r in cur.fetchall()]
+    except Exception as exc:
         raise RetrievalError(f"search failed: {exc}") from exc
 
 
@@ -235,5 +235,5 @@ def check_corpus_version(committed_version: str, database_url: str) -> str | Non
     try:
         with psycopg.connect(database_url) as conn:
             return load_corpus_version(conn)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise RetrievalError(f"corpus version check failed: {exc}") from exc

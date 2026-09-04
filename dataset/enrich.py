@@ -415,7 +415,7 @@ def make_enriched_record(
     diet_quotes: list[str] = []
     diet_source = "absent"
     for tag in clean["diet_tags"]:
-        kept, tag_source, tag_quote = classify_quoted("diet_tags", tag)
+        _kept, tag_source, tag_quote = classify_quoted("diet_tags", tag)
         if tag_source in ("extracted", "inferred"):
             diet_value.append(tag)
             if tag_quote:

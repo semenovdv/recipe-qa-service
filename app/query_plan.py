@@ -21,7 +21,7 @@ are bridged into it so callers need one exception.
 
 from __future__ import annotations
 
-from typing import Any, Literal, Tuple
+from typing import Any, Literal
 
 from pydantic import (
     BaseModel,
@@ -87,7 +87,7 @@ class Requirement(BaseModel):
         super().__init__(field=field, op=op, value=value)
 
     @model_validator(mode="after")
-    def _validate_shape(self) -> "Requirement":
+    def _validate_shape(self) -> Requirement:
         allowed = FIELD_OPS.get(self.field)
         if allowed is None:
             raise ValueError(f"unknown field: {self.field!r}")
@@ -141,7 +141,7 @@ class QueryPlan(BaseModel):
     # Required (no default): strict-mode structured outputs require every
     # key, and a plan without an explicit requirements list is a contract
     # violation, not an empty filter set.
-    requirements: Tuple[Requirement, ...]
+    requirements: tuple[Requirement, ...]
 
     @field_validator("search_query")
     @classmethod
@@ -157,7 +157,7 @@ class QueryPlan(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def _intent_plan_consistency(self) -> "QueryPlan":
+    def _intent_plan_consistency(self) -> QueryPlan:
         if self.intent == "recipe" and not self.search_query:
             raise ValueError("recipe plans require a non-empty search_query")
         if self.intent != "recipe" and (self.search_query or self.requirements):

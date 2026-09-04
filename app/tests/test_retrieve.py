@@ -6,13 +6,9 @@ faked. Live behavior was verified against the seeded pgvector container.
 
 from __future__ import annotations
 
-import pytest
-
 from app.extract import ExtractionError  # noqa: F401  (import-guard sanity)
-from app.query_plan import FilterSpecError, parse_plan
+from app.query_plan import parse_plan
 from app.retrieve import (
-    DENSE_DISTANCE_MAX,
-    RetrievalError,
     build_search_sql,
     plan_to_params,
     plan_to_where,
