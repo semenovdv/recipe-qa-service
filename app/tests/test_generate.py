@@ -219,6 +219,13 @@ class TestPromptAndErrors:
         assert "how long does borscht take?" in blob
         assert "⟦101⟧" in blob
 
+    def test_prompt_requires_a_marker_for_every_mentioned_recipe(self):
+        prompt = build_messages("Find all desserts", RECORDS)[0]["content"]
+        assert (
+            "Every recipe or dish you mention MUST have its own source marker" in prompt
+        )
+        assert "one entry for every mentioned recipe" in prompt
+
     def test_medium_reasoning_and_response_model(self):
         client = FakeClient([model_output()])
         generate("q", RECORDS, client=client)

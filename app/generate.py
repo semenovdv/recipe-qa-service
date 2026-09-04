@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.schemas import AskResponse, Citation
 
 MAX_ATTEMPTS = 2
-PROMPT_VERSION = "generate-v5"
+PROMPT_VERSION = "generate-v6"
 
 _SYSTEM_PROMPT = (
     "You answer cooking questions using ONLY the provided recipe records. "
@@ -32,6 +32,11 @@ _SYSTEM_PROMPT = (
     "Use all relevant records in the context; for a request asking for all "
     "matching dishes, include every matching record rather than selecting "
     "only the first one. "
+    "Every recipe or dish you mention MUST have its own source marker immediately "
+    "after its full title, including the second, third and every later bullet. "
+    "Never mention a recipe without a marker, never attach one marker to multiple "
+    "recipes, and never omit a marker merely because the recipe description is "
+    "short. The citations array MUST contain one entry for every mentioned recipe. "
     "When the request uses advanced mode, place each source marker immediately "
     "after the corresponding recipe title (for example, '- **Borscht** ⟦123⟧: ...'). "
     "Use exactly one marker per recipe and never collect recipe markers in a "
