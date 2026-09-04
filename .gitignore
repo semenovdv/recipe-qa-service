@@ -8,6 +8,10 @@ __pycache__/
 .pytest_cache/
 evals/report.json
 
+# UI build/install artifacts
+ui/node_modules/
+ui/dist/
+
 # Ingestion raw cache (build artifact, not part of the deliverable)
 dataset/raw/
 
