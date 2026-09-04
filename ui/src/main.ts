@@ -86,7 +86,9 @@ function renderResponse(body: AskResponse): void {
     refusal.hidden = false;
     refusal.textContent = `Request refused: ${body.refusal_reason ?? "unknown"}`;
   }
-  if (body.citations.length > 0) {
+  // Advanced mode renders each source inline beside its recipe title. The
+  // standard mode keeps the compact sources block below the answer.
+  if (!advancedMode.checked && body.citations.length > 0) {
     citations.hidden = false;
     for (const citation of body.citations) {
       const item = document.createElement("li");
