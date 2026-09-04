@@ -52,6 +52,8 @@ services:
   ui:
     build:
       context: ./ui
+    environment:
+      API_UPSTREAM: http://api:8000
     depends_on:
       api:
         condition: service_healthy
