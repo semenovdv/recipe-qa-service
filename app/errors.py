@@ -46,6 +46,10 @@ def payload_too_large(detail: str) -> Problem:
     return Problem(413, "payload-too-large", "Payload too large", detail)
 
 
+def rate_limited(detail: str = "request rate limit exceeded") -> Problem:
+    return Problem(429, "rate-limited", "Too many requests", detail)
+
+
 def dependency_unavailable(detail: str) -> Problem:
     return Problem(503, "dependency-unavailable", "Dependency unavailable", detail)
 

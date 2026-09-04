@@ -179,6 +179,19 @@ class TestAskValidation:
         r = ask(client, question="")
         assert r.status_code == 400
 
+    def test_rate_limit_is_machine_readable(self, monkeypatch):
+        from app.main import create_app
+        from app.pipeline import set_pipeline
+
+        monkeypatch.setattr("app.main.RATE_LIMIT_COUNT", 1)
+        app = create_app(build_pipeline=False)
+        set_pipeline(app, FakePipeline())
+        test_client = TestClient(app, raise_server_exceptions=False)
+        assert ask(test_client).status_code == 200
+        response = ask(test_client)
+        assert response.status_code == 429
+        assert problem(response.json())["type"] == "urn:recipe-qa:problem:rate-limited"
+
     def test_wrong_type_is_400(self, client):
         r = client.post("/ask", json={"question": 42}, headers={"Accept": "application/json"})
         assert r.status_code == 400

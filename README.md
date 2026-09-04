@@ -87,6 +87,11 @@ The review deployment runs on Northflank. Public URLs:
 - API: `https://p01--recipe-qa-service--yjw6rjx4dx4m.code.run`
 - API health: `https://p01--recipe-qa-service--yjw6rjx4dx4m.code.run/health`
 
+The public API applies an in-process limit of 10 requests per client per 60 seconds
+and returns a machine-readable HTTP 429 when the budget is exceeded. This is a
+single-container protection; a multi-replica deployment should move the limiter to
+shared infrastructure.
+
 Northflank project access is the selected container-level verification method:
 the reviewer can inspect service status, deployments, logs and metrics in the
 `recipe-qa-service` project. The current runtime uses `gpt-5.6-luna` for query planning and
@@ -126,7 +131,8 @@ Production still requires backups to be enabled in the Northflank PostgreSQL add
 No production credentials are stored in the repository. The API logs structured
 request ID, status, latency, corpus version, model, prompt version, and refusal state
 to container stdout so a bad answer can be traced through its plan, retrieval IDs, and
-provider stages; persistent `request_logs` storage remains to be wired.
+provider stages. Completed request summaries are also persisted in `request_logs` when
+the database is available; raw prompts and secrets are never stored.
 
 ## AI usage notes
 

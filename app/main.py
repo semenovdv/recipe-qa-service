@@ -6,6 +6,8 @@ import json
 import logging
 import time
 import uuid
+from collections import defaultdict, deque
+from threading import Lock
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -24,6 +26,7 @@ from app.errors import (
     invalid_request,
     not_acceptable,
     payload_too_large,
+    rate_limited,
     problem_body,
 )
 from app.schemas import AskResponse
@@ -39,10 +42,36 @@ MAX_QUESTION_CHARS = 1000          # §7.1
 MAX_BODY_BYTES = 64 * 1024         # §7.3: separately enforced body limit → 413
 REQUIRED_ACCEPT = "application/json"  # §7.1: client MUST send exactly this
 MAX_REQUEST_SECONDS = 120
+RATE_LIMIT_COUNT = 10
+RATE_LIMIT_WINDOW_SECONDS = 60
+_rate_limit_lock = Lock()
+_rate_limit_hits: dict[str, deque[float]] = defaultdict(deque)
+
+
+def _rate_limit_key(request: Request) -> str:
+    # Include the process-local app identity so independent test apps do not
+    # share a bucket; production has one app instance and therefore one bucket
+    # per client address.
+    host = request.client.host if request.client else "unknown"
+    return f"{request.app.state.rate_limit_namespace}:{host}"
+
+
+def _allow_request(key: str, now: float | None = None) -> bool:
+    now = time.monotonic() if now is None else now
+    with _rate_limit_lock:
+        hits = _rate_limit_hits[key]
+        cutoff = now - RATE_LIMIT_WINDOW_SECONDS
+        while hits and hits[0] <= cutoff:
+            hits.popleft()
+        if len(hits) >= RATE_LIMIT_COUNT:
+            return False
+        hits.append(now)
+        return True
 
 
 def create_app(build_pipeline: bool = True) -> FastAPI:
     app = FastAPI(title="Recipe Q&A Service", version="0.1.0")
+    app.state.rate_limit_namespace = uuid.uuid4().hex
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -71,6 +100,8 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
 
     @app.post("/ask")
     async def ask(request: Request) -> JSONResponse:
+        if not _allow_request(_rate_limit_key(request)):
+            raise rate_limited()
         if request.headers.get("accept") != REQUIRED_ACCEPT:
             raise not_acceptable(
                 f"this endpoint requires Accept: {REQUIRED_ACCEPT}"
@@ -122,6 +153,8 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
     @app.post("/ask/advanced/stream")
     async def ask_stream(request: Request) -> StreamingResponse:
         """Stream safe pipeline progress for the operator-facing UI."""
+        if not _allow_request(_rate_limit_key(request)):
+            raise rate_limited()
         if request.headers.get("accept") != REQUIRED_ACCEPT:
             raise not_acceptable(f"this endpoint requires Accept: {REQUIRED_ACCEPT}")
         content_type = request.headers.get("content-type", "")
@@ -242,6 +275,41 @@ def _log_request(
     if refusal_reason is not None:
         event["refusal_reason"] = refusal_reason
     logger.info("%s", json.dumps(event, sort_keys=True))
+    _persist_request_log(event)
+
+
+def _persist_request_log(event: dict[str, object]) -> None:
+    """Best-effort durable copy; logging must never take down /ask."""
+    try:
+        from app.settings import get_settings
+        database_url = get_settings().database_url
+        if not database_url:
+            return
+        import psycopg
+
+        with psycopg.connect(database_url) as conn:
+            conn.execute(
+                """INSERT INTO request_logs
+                (request_id, endpoint, status, latency_ms, corpus_version,
+                 model, prompt_version, refused, refusal_reason, error_class)
+                VALUES (%(request_id)s, %(endpoint)s, %(status)s, %(latency_ms)s,
+                        %(corpus_version)s, %(model)s, %(prompt_version)s,
+                        %(refused)s, %(refusal_reason)s, %(error_class)s)""",
+                {
+                    "request_id": event.get("request_id"),
+                    "endpoint": event.get("endpoint"),
+                    "status": event.get("status"),
+                    "latency_ms": event.get("latency_ms"),
+                    "corpus_version": event.get("corpus_version"),
+                    "model": event.get("model"),
+                    "prompt_version": event.get("prompt_version"),
+                    "refused": event.get("refused"),
+                    "refusal_reason": event.get("refusal_reason"),
+                    "error_class": None,
+                },
+            )
+    except Exception:  # noqa: BLE001 — observability is non-blocking
+        logger.warning("request log persistence failed", exc_info=True)
 
 
 def _validate_envelope(result: object) -> AskResponse:

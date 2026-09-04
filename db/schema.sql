@@ -58,7 +58,14 @@ CREATE TABLE IF NOT EXISTS request_logs (
     corpus_version text,
     retrieval_ids  integer[],
     model          text,
-    prompt_version text
+    prompt_version text,
+    refused        boolean,
+    refusal_reason text,
+    error_class    text
 );
+
+ALTER TABLE request_logs ADD COLUMN IF NOT EXISTS refused boolean;
+ALTER TABLE request_logs ADD COLUMN IF NOT EXISTS refusal_reason text;
+ALTER TABLE request_logs ADD COLUMN IF NOT EXISTS error_class text;
 
 CREATE INDEX IF NOT EXISTS request_logs_ts_idx ON request_logs (ts DESC);

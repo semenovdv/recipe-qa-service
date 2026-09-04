@@ -117,6 +117,8 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
                1.0 / (60 + lex_rank)
            ) AS rrf_score
     FROM ranked
+    WHERE fts_rank > 0
+       OR (dense_distance IS NOT NULL AND dense_distance <= {DENSE_DISTANCE_MAX})
     ORDER BY {order_clause}
     LIMIT %(limit)s
     """

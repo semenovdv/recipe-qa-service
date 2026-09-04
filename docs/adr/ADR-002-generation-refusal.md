@@ -61,15 +61,15 @@ Code-side enforcement (mirrors the enrichment guards that already proved themsel
 
 ### D3. Prompt contract (versioned)
 
-- System prompt states: answer only from provided records; cite with `⟦pageid⟧`
-  after each factual claim; if records do not support an answer, refuse with the
-  matching reason; never output URLs; never guess missing fields (time/servings).
+- System prompt states: answer only from provided records; use one `⟦pageid⟧`
+  marker per recipe immediately after the last supported passage for that recipe;
+  if records do not support an answer, refuse with the matching reason; never
+  output URLs; never guess missing fields (time/servings).
 - The prompt is versioned by `PROMPT_VERSION` constants in
   `app/extract.py` and `app/generate.py`, and the versions are logged with
   each request (§10).
-- Input per request: the top-N gated records (N ≤ 8) with title, ingredients,
-  time/servings, diet tags and `source_text` excerpt (full text for survivors — 49
-  records are small; per-record cap 6 KB).
+- Input per request: up to 15 gated records with title, ingredients, time/servings,
+  diet tags and `source_text` (the corpus is small enough for full records).
 
 ### D4. Refusal mapping
 

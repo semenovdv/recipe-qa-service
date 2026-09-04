@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     # Five bounded upstream calls can occur (two extraction attempts, one
     # embedding call, two generation attempts) within the 120s request cap.
     upstream_timeout_seconds: float = 20.0
+    request_rate_limit: int = 10
+    request_rate_window_seconds: int = 60
 
     # Postgres + pgvector (ADR-003)
     database_url: str = ""

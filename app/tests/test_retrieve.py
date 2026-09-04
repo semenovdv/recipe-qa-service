@@ -101,6 +101,11 @@ class TestBuildSearchSql:
         sql = build_search_sql(plan(), embed_query=False)
         assert "LIMIT %(limit)s" in sql
 
+    def test_relevance_gate_runs_before_limit(self):
+        sql = build_search_sql(plan(), embed_query=True)
+        assert "dense_distance <=" in sql
+        assert sql.index("WHERE fts_rank > 0") < sql.index("LIMIT %(limit)s")
+
 
 class TestRelevanceAndSelection:
     def test_relevance_gate_rejects_below_threshold(self):
