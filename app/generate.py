@@ -23,6 +23,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.schemas import AskResponse, Citation
 
 MAX_ATTEMPTS = 2
+PROMPT_VERSION = "generate-v2"
 
 _SYSTEM_PROMPT = (
     "You answer cooking questions using ONLY the provided recipe records. "
@@ -56,10 +57,16 @@ class GenerationOutput(BaseModel):
 
 
 VALID_REFUSALS = {"out_of_corpus", "out_of_domain", "safety"}
+_PUBLIC_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
 
 
 def _ws(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def _public_answer(answer: str) -> str:
+    """Remove request-scoped citation markers from the public answer text."""
+    return _PUBLIC_MARKER_RE.sub("", answer).strip()
 
 
 def build_messages(question: str, records: list[dict],
@@ -115,8 +122,11 @@ def _to_response(out: GenerationOutput, records: list[dict]) -> AskResponse | No
     if out.kind == "refusal":
         if out.refusal_reason not in VALID_REFUSALS:
             return None  # invalid enum -> retry
+        answer = _public_answer(out.answer)
+        if not answer:
+            return None
         return AskResponse(
-            answer=out.answer, citations=[], refused=True,
+            answer=answer, citations=[], refused=True,
             refusal_reason=out.refusal_reason,
         )
 
@@ -142,8 +152,14 @@ def _to_response(out: GenerationOutput, records: list[dict]) -> AskResponse | No
         Citation(title=by_pageid[pid]["title"], url=by_pageid[pid]["source_url"])
         for pid in ordered if not (pid in seen or seen.add(pid))
     ]
+    answer = _public_answer(out.answer)
+    if not answer:
+        return None
     return AskResponse(
-        answer=out.answer, citations=citations, refused=False, refusal_reason=None,
+        answer=answer,
+        citations=citations,
+        refused=False,
+        refusal_reason=None,
     )
 
 

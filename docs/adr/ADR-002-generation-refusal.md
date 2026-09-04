@@ -10,7 +10,8 @@ The generation stage receives the QueryPlan (ADR-001), the filtered/ranked candi
 records (already evidence-gated per §8.2) and must produce either a grounded answer
 with citations or a refusal — under these contract constraints:
 
-- Public `refusal_reason` is exactly 3 values: `out_of_scope`, `not_found`, `error`
+- Public `refusal_reason` is exactly 3 values: `out_of_corpus`, `out_of_domain`,
+  `safety`
   (§4.1/§7.1). Internal `refusal_subreason` taxonomy stays off the API.
 - `answer` is a non-empty string (assumption §4.12).
 - Citations use verbatim-evidence markers `⟦<pageid>⟧` (appendix §2); at least one
@@ -41,7 +42,7 @@ The response is a single strict-schema object:
 {
   "kind": "answer" | "refusal",
   "answer": "string (non-empty; friendly refusal text when kind=refusal)",
-  "refusal_reason": "out_of_scope | not_found | error",
+  "refusal_reason": "out_of_corpus | out_of_domain | safety",
   "refusal_subreason": "string (internal, may be empty)",
   "citations": [ { "pageid": 12345, "quote": "verbatim source substring" } ]
 }
@@ -49,22 +50,23 @@ The response is a single strict-schema object:
 
 Code-side enforcement (mirrors the enrichment guards that already proved themselves):
 
-- `kind="answer"` with zero valid citations → converted to `not_found` refusal.
+- `kind="answer"` with zero valid citations → converted to `out_of_corpus` refusal.
 - Every citation's `quote` must be a verbatim substring of that pageid's gated
   `source_text`; otherwise the citation is dropped; answer with no surviving
-  citations → `not_found` refusal.
+  citations → `out_of_corpus` refusal.
 - `refusal_reason` outside the 3-value enum is impossible by schema; the subreason is
   logged but never returned publicly.
 - Empty `answer` string → schema violation at generation time → one bounded retry,
-  then `error` refusal (this is an infrastructure failure, honestly reported).
+  then an HTTP 503 problem (this is an infrastructure failure, honestly reported).
 
 ### D3. Prompt contract (versioned)
 
 - System prompt states: answer only from provided records; cite with `⟦pageid⟧`
   after each factual claim; if records do not support an answer, refuse with the
   matching reason; never output URLs; never guess missing fields (time/servings).
-- The prompt is versioned (`PROMPT_VERSION`), logged with each request (§10) and
-  stored in `app/prompts/` — prompt changes are changes to logged behavior.
+- The prompt is versioned by `PROMPT_VERSION` constants in
+  `app/extract.py` and `app/generate.py`, and the versions are logged with
+  each request (§10).
 - Input per request: the top-N gated records (N ≤ 8) with title, ingredients,
   time/servings, diet tags and `source_text` excerpt (full text for survivors — 49
   records are small; per-record cap 6 KB).
@@ -73,13 +75,14 @@ Code-side enforcement (mirrors the enrichment guards that already proved themsel
 
 | Situation | `refusal_reason` | Notes |
 |---|---|---|
-| Non-recipe / off-domain question | `out_of_scope` | subreason `domain` |
-| Recipe-domain but no candidate passes hard filters | `out_of_scope` | subreason `filters` (§9: refuse rather than relax) |
-| Candidates exist but evidence/citations fail | `not_found` | subreason `evidence_gate` |
-| Extraction/schema/infra failure, retries exhausted | `error` | subreason logged; HTTP still 200 per §7.1 (or 503 if pre-generation) |
+| Non-recipe / off-domain question | `out_of_domain` | LLM-classified intent in QueryPlan; no retrieval or generation |
+| Safety-sensitive question | `safety` | LLM-classified intent in QueryPlan; no retrieval or generation |
+| Recipe-domain but no candidate passes hard filters | `out_of_corpus` | Refuse rather than relax constraints |
+| Candidates exist but evidence/citations fail | `out_of_corpus` | Evidence gate refuses rather than guessing |
+| Extraction/schema/infra failure, retries exhausted | HTTP 503 problem | Operational failure is never a business refusal |
 
-Safety-refusal questions (§4.x safety precedence) map to `out_of_scope` with subreason
-`safety` and never reach generation.
+Safety-refusal questions (§4.x safety precedence) map to `safety` and never reach
+retrieval or generation.
 
 ## Alternatives considered
 

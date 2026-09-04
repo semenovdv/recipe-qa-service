@@ -113,16 +113,22 @@ def apply(corpus_version: str, records: list[dict]) -> None:
 
     import psycopg
 
-    print(f"Embedding {len(records)} records...")
-    embeddings = fetch_embeddings(records)
-    rows = build_rows(records, corpus_version, embeddings)
-
     with psycopg.connect(url) as conn, conn.cursor() as cur:
         print("Applying schema...")
         cur.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
-        print("Upserting rows...")
+        cur.execute("SELECT pageid, corpus_version FROM recipes")
+        existing = {pageid: version for pageid, version in cur.fetchall()}
+        records_to_embed = [
+            record for record in records
+            if existing.get(record["pageid"]) != corpus_version
+        ]
+        print(f"Embedding {len(records_to_embed)} new or changed records...")
+        embeddings = fetch_embeddings(records_to_embed) if records_to_embed else {}
+        rows = build_rows(records_to_embed, corpus_version, embeddings)
+        print(f"Upserting {len(rows)} rows...")
         t0 = time.time()
-        cur.executemany(merge_sql(), rows)
+        if rows:
+            cur.executemany(merge_sql(), rows)
         # Stale-row cleanup: corpus may have shrunk since last seed.
         cur.execute(
             "DELETE FROM recipes WHERE corpus_version <> %s", (corpus_version,)

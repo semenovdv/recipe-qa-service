@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # OpenAI (extraction + generation + embeddings; ADR-001/002)
     openai_api_key: str = ""
     openai_model: str = "gpt-5.6-luna"
+    # Five bounded upstream calls can occur (two extraction attempts, one
+    # embedding call, two generation attempts) within the 120s request cap.
+    upstream_timeout_seconds: float = 20.0
 
     # Postgres + pgvector (ADR-003)
     database_url: str = ""

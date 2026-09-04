@@ -26,8 +26,9 @@ shape retrieval:
 The pipeline shape (user-driven design decision):
 
 1. User question → **fast extraction call** (`gpt-5.6-luna`, `reasoning_effort="none"`,
-   Structured Outputs) → `QueryPlan`: a **typed requirement list** in a fixed predicate
-   format (FilterSpec v1, defined in D2) plus a free-text ranking query. Example:
+   Structured Outputs) → `QueryPlan`: an LLM-classified `intent` plus a **typed
+   requirement list** in a fixed predicate format (FilterSpec v1, defined in D2) and
+   a free-text ranking query. Example:
    *"quick vegetarian dinner under 30 minutes that uses eggplant"* →
    requirements `[diet_tags ANY [vegetarian], time_minutes LTE 30,
    ingredients CONTAINS eggplant]` + `search_query "quick vegetarian eggplant dinner"`.
@@ -46,7 +47,7 @@ live endpoint on 2026-09-03:
 
 | Call | Effort | Structured output | Measured latency | Purpose |
 |---|---|---|---|---|
-| Query planning | `none` | strict JSON schema | ~1.9 s | translate question → typed requirements + ranking query |
+| Query planning | `none` | strict JSON schema | ~1.9 s | classify intent and translate question → typed requirements + ranking query |
 | Answer generation | `medium` | strict JSON schema | budget ≤ ~15 s | grounded answer / refusal + citations |
 
 Rationale: constraint extraction is a classification/normalization task — reasoning
@@ -63,6 +64,8 @@ v1**). Natural-language fragments map to typed predicates: *"salt in ingredients
 
 ```json
 {
+  "intent": "recipe",
+  "intent_reason": "the user requests a quick vegetarian recipe",
   "search_query": "quick vegetarian eggplant dinner",
   "requirements": [
     { "field": "diet_tags",    "op": "any",      "value": ["vegetarian"] },
@@ -99,13 +102,14 @@ Semantics:
   nothing → empty candidate set → refusal (§9: refuse rather than relax — never
   fuzzy-match a hard constraint).
 - `search_query` carries **no filter authority**; it is only the ranking input (D3).
-  The LLM's only job is translating the question into the typed format; code evaluates
-  every requirement.
+  The LLM classifies intent and translates recipe constraints into the typed format;
+  code evaluates every recipe requirement.
 
 Filter order (SPEC §8.1 requires documenting it):
 
-1. **Domain/pre-filter** — non-recipe questions are refused before retrieval.
-2. **Requirement application** — all requirements evaluated in code, per record.
+1. **LLM intent gate** — the extraction call classifies intent; safety and
+   out-of-domain plans are refused before embeddings and retrieval.
+2. **Requirement application** — all recipe requirements are evaluated in code, per record.
 3. **Ranking** of survivors only (see D3).
 4. **Selection policy** for a single winning record when the question is about one
    dish: relevance order, then **lowest stable `pageid`** tie-break (baseline §4.2,
@@ -134,22 +138,22 @@ a demo) and must handle paraphrase ("eggplant dish" → `Baingan Bartha`). Decis
   the same logical text; one embedding per record (recipe-level, not chunked — records
   average ~3 KB of source text; chunking adds nothing at this size and breaks the
   citation-per-record model).
-- **Fusion**: weighted Reciprocal Rank Fusion (k=60), weights 0.6 lexical / 0.4 dense,
-  tuned on a small labeled set from the golden cases; threshold: minimum fusion score
-  for "relevant" is calibrated and recorded here after golden-eval tuning (placeholder
-  resolved in Phase 4; initial gate = any nonzero BM25 hit OR cosine ≥ 0.30).
+- **Fusion**: weighted Reciprocal Rank Fusion (k=60), weights 0.6 lexical / 0.4 dense.
+  The initial relevance gate is a positive FTS rank or cosine similarity ≥ 0.30
+  (cosine distance ≤ 0.70), implemented in `app/retrieve.py` and subject to
+  calibration against the golden eval.
 - **Cold-start**: embeddings for query come from the same model; the served corpus is
   a committed, versioned artifact loaded into Postgres+pgvector by a deterministic
   seeder with a boot-time `corpus_version` check (storage decision in ADR-003).
 
 ### D4. Refusal paths preserved
 
-- No candidates after hard filters → `out_of_scope` refusal (200, §9) — never relax
+- No candidates after hard filters → `out_of_corpus` refusal (200, §9) — never relax
   filters.
-- Candidates exist but evidence gate fails → `not_found` refusal.
-- The off-topic/out-of-domain pre-check happens **before** the extraction call only as
-  a cheap lexical/keyword guard; the primary domain gate is the generation stage's
-  refusal decision (ADR-002).
+- Candidates exist but evidence gate fails → `out_of_corpus` refusal.
+- The LLM intent classification happens inside extraction. Safety and out-of-domain
+  plans are returned **before** embedding, retrieval and generation; no regex or
+  keyword allow/deny list is used for this boundary.
 
 ## Alternatives considered
 

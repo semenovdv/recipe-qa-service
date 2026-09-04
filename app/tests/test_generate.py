@@ -110,6 +110,20 @@ class TestHappyPath:
 
 
 class TestEvidenceGate:
+    def test_internal_markers_are_not_public(self):
+        out = model_output(answer="Borscht is a soup. ⟦101⟧")
+        result = generate("q", RECORDS, client=FakeClient([out]))
+        assert "⟦" not in result.answer
+
+    def test_internal_markers_are_not_public_on_refusal(self):
+        out = model_output(
+            kind="refusal",
+            answer="I cannot answer this. ⟦101⟧",
+            refusal_reason="out_of_corpus",
+        )
+        result = generate("q", RECORDS, client=FakeClient([out]))
+        assert "⟦" not in result.answer
+
     def test_fabricated_quote_dropped_and_answer_demoted_to_refusal(self):
         bad = model_output(citations=[{"pageid": 101, "quote": "Borscht was invented in 1832."}])
         client = FakeClient([bad, bad])

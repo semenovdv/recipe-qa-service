@@ -22,11 +22,11 @@ from __future__ import annotations
 
 from typing import Any, Literal, Tuple
 
-from pydantic import BaseModel, ConfigDict, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 # Whitelist: field -> allowed ops -> expected value shape.
 FIELD_OPS: dict[str, dict[str, str]] = {
-    "ingredients": {"contains": "string"},
+    "ingredients": {"contains": "string", "not_contains": "string"},
     "cuisine": {"eq": "string"},
     "dish_type": {"eq": "string"},
     "diet_tags": {"any": "list_of_strings", "all": "list_of_strings"},
@@ -40,6 +40,7 @@ FIELD_OPS: dict[str, dict[str, str]] = {
 VOCAB_FIELDS = ("cuisine", "dish_type", "diet_tags")
 
 VocabularyKey = Literal["cuisines", "dish_types", "diet_tags"]
+IntentKind = Literal["recipe", "out_of_domain", "safety"]
 VOCAB_KEY_FOR_FIELD: dict[str, VocabularyKey] = {
     "cuisine": "cuisines",
     "dish_type": "dish_types",
@@ -56,9 +57,16 @@ class Requirement(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    field: str
-    op: str
-    value: Any
+    # Literal types: the JSON schema exposes the whitelist to the model as
+    # enums, so invalid fields/ops are rejected before custom validators.
+    field: Literal[
+        "ingredients", "cuisine", "dish_type", "diet_tags",
+        "time_minutes", "servings", "title",
+    ]
+    op: Literal["contains", "not_contains", "eq", "any", "all", "lte", "gte"]
+    # Closed union (not Any): OpenAI strict mode requires a concrete type
+    # for every property. Per-field/op legality is enforced below.
+    value: str | list[str] | int | float
 
     def __init__(self, field: str, op: str, value: Any) -> None:
         # Positional bridge so both Requirement("f", "op", v) and
@@ -96,7 +104,12 @@ class Requirement(BaseModel):
 
 
 class QueryPlan(BaseModel):
-    """The extraction call's output: a ranking query + typed requirements.
+    """The extraction call's output: intent, ranking query and hard filters.
+
+    Intent is deliberately part of this LLM-produced plan. Natural-language
+    safety and domain boundaries are too broad for a reliable keyword/regex
+    gate. Non-recipe plans terminate in the pipeline before embeddings,
+    retrieval and answer generation.
 
     ``model_json_schema()`` on this class is the strict schema used for the
     OpenAI structured-outputs call (extra=forbid -> additionalProperties:
@@ -105,6 +118,8 @@ class QueryPlan(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    intent: IntentKind
+    intent_reason: str = Field(min_length=1, max_length=240)
     search_query: str
     # Required (no default): strict-mode structured outputs require every
     # key, and a plan without an explicit requirements list is a contract
@@ -113,10 +128,26 @@ class QueryPlan(BaseModel):
 
     @field_validator("search_query")
     @classmethod
-    def _search_query_not_blank(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("search_query must be a non-empty string")
-        return v
+    def _search_query_trim(cls, v: str) -> str:
+        return v.strip()
+
+    @field_validator("intent_reason")
+    @classmethod
+    def _intent_reason_trim(cls, v: str) -> str:
+        value = v.strip()
+        if not value:
+            raise ValueError("intent_reason must be a non-empty string")
+        return value
+
+    @model_validator(mode="after")
+    def _intent_plan_consistency(self) -> "QueryPlan":
+        if self.intent == "recipe" and not self.search_query:
+            raise ValueError("recipe plans require a non-empty search_query")
+        if self.intent != "recipe" and (self.search_query or self.requirements):
+            raise ValueError(
+                "non-recipe plans must have an empty search_query and no requirements"
+            )
+        return self
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +167,14 @@ def parse_plan(data: object) -> QueryPlan:
 
 
 def _first_message(exc: ValidationError) -> str:
-    err = exc.errors()[0]
-    return str(err.get("msg") or "invalid query plan")
+    """Compact error text including the location (fed to retry hints)."""
+    errs = exc.errors()
+    if not errs:
+        return "invalid query plan"
+    err = errs[0]
+    loc = ".".join(str(p) for p in err.get("loc", ()))
+    msg = str(err.get("msg") or "invalid")
+    return f"{loc}: {msg}" if loc else msg
 
 
 # ---------------------------------------------------------------------------
@@ -194,7 +231,8 @@ def evaluate_requirement(req: Requirement, record: dict) -> bool:
         if not items:
             return False  # unknown/empty ingredients: conservative fail
         needle = _norm_ci(value)
-        return any(needle in _norm_ci(i) for i in items)
+        found = any(needle in _norm_ci(i) for i in items)
+        return not found if op == "not_contains" else found
 
     if f == "title":
         title = record.get("title")

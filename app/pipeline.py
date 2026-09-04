@@ -71,7 +71,11 @@ class LunaPipeline:
 
         self._settings = settings
         self._retrieve = retrieve
-        self._client = OpenAI(api_key=settings.openai_api_key)
+        self._client = OpenAI(
+            api_key=settings.openai_api_key,
+            timeout=settings.upstream_timeout_seconds,
+            max_retries=0,
+        )
 
         committed = _committed_corpus_version(settings.corpus_index_path)
         with _connect(settings.database_url) as conn:
@@ -83,9 +87,8 @@ class LunaPipeline:
             )
 
     def answer(self, question: str, request_id: str) -> dict:
-        from app.extract import ExtractionError, extract_plan
+        from app.extract import ExtractionError, UnsupportedConstraintError, extract_plan
         from app.generate import GenerationError, generate
-        from app.schemas import AskResponse
 
         try:
             plan = extract_plan(
@@ -93,6 +96,23 @@ class LunaPipeline:
             )
             # §10 correlation: the extracted plan shapes everything downstream.
             self._log.info("request_id=%s plan=%s", request_id, plan.model_dump())
+
+            # Intent is classified by the same structured LLM call as the plan.
+            # These branches intentionally precede embeddings, retrieval and
+            # answer generation; a non-recipe request never reaches the DB
+            # search path or the generation model.
+            if plan.intent == "safety":
+                return _refusal(
+                    "I can't certify that a recipe is safe or allergen-free. "
+                    "Please check the full ingredient list and product labels.",
+                    "safety",
+                )
+            if plan.intent == "out_of_domain":
+                return _refusal(
+                    "I can only answer questions about recipes in the cookbook corpus.",
+                    "out_of_domain",
+                )
+
             query_vec = self._client.embeddings.create(
                 model="text-embedding-3-small", input=[plan.search_query]
             ).data[0].embedding
@@ -103,24 +123,53 @@ class LunaPipeline:
                 "request_id=%s retrieval_ids=%s",
                 request_id, [r["pageid"] for r in records],
             )
+        except UnsupportedConstraintError:
+            return _refusal(
+                "No recipe in the cookbook corpus supports that constraint.",
+                "out_of_corpus",
+            )
         except (ExtractionError, self._retrieve.RetrievalError) as exc:
             raise PipelineUnavailable(
                 f"{type(exc).__name__}: {exc}"
             ) from exc
+        except Exception as exc:  # noqa: BLE001 — provider failures are 503s
+            raise PipelineUnavailable(f"upstream request failed: {exc}") from exc
+
+        records = self._retrieve.relevant_records(records)
 
         if not records:
             # No candidates survived the hard filters -> honest refusal (§9).
-            return AskResponse(
-                answer="No recipe in the cookbook matches those requirements, "
-                       "so I won't stretch the constraints. Try relaxing a "
-                       "filter or asking about a different dish.",
-                citations=[], refused=True, refusal_reason="out_of_corpus",
-            ).model_dump()
+            return _refusal(
+                "No recipe in the cookbook matches those requirements, so I "
+                "won't stretch the constraints. Try relaxing a filter or "
+                "asking about a different dish.",
+                "out_of_corpus",
+            )
+
+        records = self._retrieve.select_for_answer(question, records)
+        if not records or (
+            self._retrieve.is_comparison_question(question) and len(records) < 2
+        ):
+            return _refusal(
+                "I couldn't find enough recipes in the corpus to support that "
+                "comparison.",
+                "out_of_corpus",
+            )
 
         try:
             return generate(question, records, client=self._client).model_dump()
         except GenerationError as exc:
             raise PipelineUnavailable(f"generation failed: {exc}") from exc
+        except Exception as exc:  # noqa: BLE001 — provider failures are 503s
+            raise PipelineUnavailable(f"upstream request failed: {exc}") from exc
+
+
+def _refusal(answer: str, reason: str) -> dict:
+    from app.schemas import AskResponse
+
+    return AskResponse(
+        answer=answer, citations=[], refused=True, refusal_reason=reason,
+    ).model_dump()
 
 
 def _connect(database_url: str):

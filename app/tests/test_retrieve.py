@@ -10,15 +10,23 @@ import pytest
 from app.extract import ExtractionError  # noqa: F401  (import-guard sanity)
 from app.query_plan import FilterSpecError, parse_plan
 from app.retrieve import (
+    DENSE_DISTANCE_MAX,
     RetrievalError,
     build_search_sql,
     plan_to_params,
     plan_to_where,
+    relevant_records,
+    select_for_answer,
 )
 
 
 def plan(*requirements):
-    return parse_plan({"search_query": "dinner", "requirements": list(requirements)})
+    return parse_plan({
+        "intent": "recipe",
+        "intent_reason": "the user asks about a recipe",
+        "search_query": "dinner",
+        "requirements": list(requirements),
+    })
 
 
 class TestPlanToWhere:
@@ -32,6 +40,12 @@ class TestPlanToWhere:
             plan({"field": "ingredients", "op": "contains", "value": "salt"}))
         assert "ILIKE" in where
         assert params == {"req_0": "%salt%"}
+
+    def test_ingredients_not_contains(self):
+        where, params = plan_to_where(
+            plan({"field": "ingredients", "op": "not_contains", "value": "peanut"}))
+        assert "NOT EXISTS" in where
+        assert params == {"req_0": "%peanut%"}
 
     def test_cuisine_eq(self):
         where, params = plan_to_where(
@@ -86,6 +100,24 @@ class TestBuildSearchSql:
     def test_orders_and_limits(self):
         sql = build_search_sql(plan(), embed_query=False)
         assert "LIMIT %(limit)s" in sql
+
+
+class TestRelevanceAndSelection:
+    def test_relevance_gate_rejects_below_threshold(self):
+        records = [
+            {"pageid": 1, "fts_rank": 0, "dense_distance": 0.71},
+            {"pageid": 2, "fts_rank": 0.2, "dense_distance": 0.99},
+            {"pageid": 3, "fts_rank": 0, "dense_distance": 0.70},
+        ]
+        assert [r["pageid"] for r in relevant_records(records)] == [2, 3]
+
+    def test_singular_selection_uses_lowest_stable_pageid(self):
+        records = [{"pageid": 20}, {"pageid": 3}, {"pageid": 11}]
+        assert [r["pageid"] for r in select_for_answer("How do I make soup?", records)] == [3]
+
+    def test_comparison_keeps_relevant_candidates_in_rank_order(self):
+        records = [{"pageid": 20}, {"pageid": 3}]
+        assert select_for_answer("Compare these recipes", records) == records
 
 
 class TestPlanToParams:

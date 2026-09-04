@@ -1,22 +1,22 @@
 """API contract tests for /ask and /health — SPEC §7.
 
-Test-first per TEST-07: these tests must fail before implementation exists.
+The pipeline is injected where the HTTP boundary is tested so these tests
+remain hermetic; pipeline-specific behavior is covered separately.
 
-The AI pipeline (retrieval + generation per ADR-001/002) is not built yet.
-Contract design for that case:
-
-- The 200-envelope behavior is tested against an *injected* fake pipeline,
+- The 200-envelope behavior is tested against an injected fake pipeline,
   proving the HTTP layer honors the §7.1 schema and cross-field invariants.
-- The default app has NO pipeline wired: /ask must return the §7.3
-  dependency-unavailable problem (503, type urn:...:dependency-unavailable)
-  and MUST NOT be disguised as a confident answer or an out_of_corpus
-  refusal. This is the explicit "AI not ready" exception.
+- The default app may be unavailable in a test environment: /ask must return
+  an explicit §7.3 dependency-unavailable problem, never a disguised answer
+  or an out_of_corpus refusal.
+
+Contract design:
 
 Validation / Accept / body-limit behavior is pipeline-independent: it must
 reject before ever reaching the pipeline (AC-08).
 """
 from __future__ import annotations
 
+import time
 import pytest
 from fastapi.testclient import TestClient
 
@@ -25,7 +25,9 @@ from fastapi.testclient import TestClient
 def client():
     from app.main import create_app
 
-    return TestClient(create_app(), raise_server_exceptions=False)
+    # Hermetic: no real pipeline construction (no settings/DB access).
+    # The 503 not-ready state is exactly what these tests pin down.
+    return TestClient(create_app(build_pipeline=False), raise_server_exceptions=False)
 
 
 def ask(client, question="How do I boil water?", accept="application/json", **kwargs):
@@ -56,7 +58,7 @@ class TestAskEnvelopeWithFakePipeline:
         from app.main import create_app
         from app.pipeline import set_pipeline
 
-        app = create_app()
+        app = create_app(build_pipeline=False)
         set_pipeline(app, FakePipeline())
         return TestClient(app, raise_server_exceptions=False)
 
@@ -141,6 +143,22 @@ class TestAskPipelineNotReady:
         r = ask(client)
         assert r.status_code != 200
 
+    def test_pipeline_timeout_is_503(self, monkeypatch):
+        from app.main import create_app
+        from app.pipeline import set_pipeline
+
+        class SlowPipeline:
+            def answer(self, question, request_id):
+                time.sleep(0.05)
+                return FakePipeline().answer(question, request_id)
+
+        monkeypatch.setattr("app.main.MAX_REQUEST_SECONDS", 0.001)
+        app = create_app(build_pipeline=False)
+        set_pipeline(app, SlowPipeline())
+        r = ask(TestClient(app, raise_server_exceptions=False))
+        assert r.status_code == 503
+        assert problem(r.json())["type"] == "urn:recipe-qa:problem:dependency-unavailable"
+
 
 # ---------------------------------------------------------------------------
 # POST /ask — validation errors, rejected before the pipeline (AC-08)
@@ -170,8 +188,8 @@ class TestAskValidation:
         assert r.status_code == 400
 
     def test_max_length_question_passes_validation(self, client):
-        # Exactly 1000 chars is valid per §7.1; must reach the (missing)
-        # pipeline, so the observable outcome is the 503, not a 400.
+        # Exactly 1000 chars is valid per §7.1; with no injected pipeline the
+        # observable outcome is the 503, not a 400.
         r = ask(client, question="a" * 1000)
         assert r.status_code == 503
 
@@ -188,6 +206,14 @@ class TestAskValidation:
             "/ask",
             content=b"not json",
             headers={"Accept": "application/json", "Content-Type": "application/json"},
+        )
+        assert r.status_code == 400
+
+    def test_missing_content_type_is_400(self, client):
+        r = client.post(
+            "/ask",
+            content=b'{"question": "How do I cook borscht?"}',
+            headers={"Accept": "application/json"},
         )
         assert r.status_code == 400
 
@@ -233,7 +259,7 @@ class TestHealth:
         from app.main import create_app
 
         monkeypatch.setenv("CORPUS_INDEX_PATH", "/nonexistent/index.json")
-        app = create_app()
+        app = create_app(build_pipeline=False)
         c = TestClient(app, raise_server_exceptions=False)
         r = c.get("/health")
         assert r.status_code == 503

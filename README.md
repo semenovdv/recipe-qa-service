@@ -2,9 +2,9 @@
 
 ## Status
 
-The repository is at the specification/planning stage. The service implementation,
-public URLs, deployment provider, selected model, and measured cost/latency will be
-recorded after the core implementation is complete. The root
+The core backend and Docker Compose workflow are implemented and verified locally.
+A public deployment, UI, CI/CD, and managed production database are still pending.
+The root
 [`SPEC.md`](SPEC.md) is the canonical entry point, and the normative text is
 kept in [`docs/03_SPEC.md`](docs/03_SPEC.md), without a second copy.
 
@@ -38,6 +38,33 @@ of leaving the core path unfinished. To bring any of these features back,
 separate requirements, acceptance cases, tests, and a cost/latency estimate are
 needed first.
 
+## Run locally with Docker
+
+Docker Compose starts PostgreSQL 16 with pgvector, waits for the database healthcheck,
+runs the idempotent corpus seed, and then starts the API. The first clean start calls
+the embeddings API for the 49 corpus records; later starts reuse embeddings for the
+same corpus version.
+
+```bash
+cp .env.example .env
+# Set OPENAI_API_KEY in .env
+docker compose up --build
+```
+
+The API is available at `http://localhost:8000`; health is checked at
+`http://localhost:8000/health`. The local database is exposed on port `5433` for
+inspection, while the API connects to it internally as `db:5432`.
+
+To stop the services while keeping the database volume:
+
+```bash
+docker compose down
+```
+
+The seed is safe to run repeatedly: it applies the schema, upserts only missing or
+changed corpus records, removes stale records, and verifies the final count and
+`corpus_version`.
+
 ## Long-chat policy for a future extension
 
 The MVP is not a chat and stores no history. If multi-turn chat appears later,
@@ -56,11 +83,18 @@ actually chosen and the results of their runs.
 
 ## Deployment, cost and latency
 
-These values are not yet defined because implementation and deployment have not
-been selected. The final README must state the provider and the reason for the
-choice, the public UI/API URLs, container-level access, the commands for local
-and clean deployment, the selected models, the cost of one question and of 1,000
-questions, latency, the current bottleneck, and the next optimization.
+The local Docker workflow is verified, but a public provider and production URLs have
+not been selected yet. The current runtime uses `gpt-5.6-luna` for query planning and
+answer generation, plus `text-embedding-3-small` for recipe and query vectors. The
+dominant latency is the two LLM calls; the next optimization is request-level metrics
+and golden-eval measurement before changing model tiers.
+
+Production still requires a managed PostgreSQL+pgvector instance, platform-injected
+`DATABASE_URL` and `OPENAI_API_KEY`, a public API/UI deployment, backups, and CI/CD.
+No production credentials are stored in the repository. The API logs structured
+request ID, status, latency, corpus version, model, prompt version, and refusal state
+to container stdout so a bad answer can be traced through its plan, retrieval IDs, and
+provider stages; persistent `request_logs` storage remains to be wired.
 
 ## AI usage notes
 

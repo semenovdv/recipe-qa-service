@@ -56,10 +56,10 @@ class TestEmbeddingText:
 class TestSearchText:
     def test_title_plus_ingredients(self):
         text = search_text(base_record())
-        assert text == "Cookbook:Baingan Bartha Ghee or oil panch puran potatoes"
+        assert text == "Cookbook:Baingan Bartha Ghee or oil panch puran potatoes Indian side dish"
 
     def test_handles_missing_ingredients(self):
-        assert search_text(base_record(ingredients_normalized=None)) == "Cookbook:Baingan Bartha"
+        assert search_text(base_record(ingredients_normalized=None)) == "Cookbook:Baingan Bartha Indian side dish"
 
 
 class TestBuildRow:

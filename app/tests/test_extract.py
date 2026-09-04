@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.extract import ExtractionError, build_messages, extract_plan
+from app.extract import ExtractionError, UnsupportedConstraintError, build_messages, extract_plan
 
 
 class FakeCompletions:
@@ -49,6 +49,8 @@ class FakeClient:
 
 def plan_dict(**over):
     d = {
+        "intent": "recipe",
+        "intent_reason": "the user wants a recipe",
         "search_query": "quick vegetarian dinner",
         "requirements": [
             {"field": "diet_tags", "op": "any", "value": ["vegetarian"]},
@@ -63,15 +65,29 @@ class TestExtractPlan:
     def test_happy_path_returns_validated_plan(self):
         client = FakeClient([plan_dict()])
         plan = extract_plan("vegetarian dinner under 30 minutes", client=client)
+        assert plan.intent == "recipe"
+        assert plan.intent_reason == "the user wants a recipe"
         assert plan.search_query == "quick vegetarian dinner"
         assert len(plan.requirements) == 2
+
+    def test_llm_plan_can_classify_safety_without_search_payload(self):
+        client = FakeClient([plan_dict(
+            intent="safety",
+            intent_reason="the user asks for an allergy safety assessment",
+            search_query="",
+            requirements=[],
+        )])
+        plan = extract_plan("Could this be safe for a peanut allergy?", client=client)
+        assert plan.intent == "safety"
+        assert plan.search_query == ""
+        assert plan.requirements == ()
 
     def test_uses_none_reasoning_and_response_model(self):
         client = FakeClient([plan_dict()])
         extract_plan("q", client=client)
         call = client.chat.completions.calls[0]
         assert call["reasoning_effort"] == "none"
-        assert call["response_model"].__name__ == "QueryPlan"
+        assert call["response_format"].__name__ == "QueryPlan"
 
     def test_messages_contain_question(self):
         msgs = build_messages("how to cook borscht?")
@@ -79,7 +95,7 @@ class TestExtractPlan:
 
     def test_invalid_first_response_retried_once(self):
         client = FakeClient([
-            {"search_query": "x", "requirements": [
+            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "cuisine", "op": "eq", "value": 42}]},  # invalid
             plan_dict(),
         ])
@@ -92,8 +108,8 @@ class TestExtractPlan:
 
     def test_exhausted_retries_raise_extraction_error(self):
         client = FakeClient([
-            {"search_query": "", "requirements": []},
-            {"search_query": "", "requirements": []},
+            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "", "requirements": []},
+            {"intent": "recipe", "intent_reason": "recipe request", "search_query": "", "requirements": []},
         ])
         with pytest.raises(ExtractionError):
             extract_plan("q", client=client)
@@ -116,7 +132,7 @@ class TestExtractPlan:
             plan_dict(requirements=[{"field": "cuisine", "op": "eq", "value": "Martian"}]),
             plan_dict(requirements=[{"field": "cuisine", "op": "eq", "value": "Atlantis"}]),
         ])
-        with pytest.raises(ExtractionError):
+        with pytest.raises(UnsupportedConstraintError):
             extract_plan("q", client=client,
                          vocabularies={"cuisines": {"Ukrainian", "Indian"}})
         assert len(client.chat.completions.calls) == 2

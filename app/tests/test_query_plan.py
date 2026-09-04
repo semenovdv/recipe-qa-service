@@ -38,6 +38,8 @@ def rec(**kw):
 class TestParsing:
     def test_valid_plan_parses(self):
         plan = parse_plan({
+            "intent": "recipe",
+            "intent_reason": "recipe request",
             "search_query": "borscht",
             "requirements": [
                 {"field": "diet_tags", "op": "any", "value": ["vegetarian"]},
@@ -49,80 +51,107 @@ class TestParsing:
         assert len(plan.requirements) == 2
 
     def test_empty_requirements_allowed(self):
-        plan = parse_plan({"search_query": "borscht", "requirements": []})
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "borscht", "requirements": []})
         assert plan.requirements == ()  # frozen dataclass stores a tuple
 
     def test_unknown_field_rejected(self):
         with pytest.raises(FilterSpecError, match="field"):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "color", "op": "eq", "value": "red"}]})
 
     def test_op_not_allowed_for_field_rejected(self):
         # ingredients only supports `contains`; eq must be rejected
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "ingredients", "op": "eq", "value": "salt"}]})
 
     def test_numeric_field_requires_number(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "time_minutes", "op": "lte", "value": "fast"}]})
 
     def test_numeric_field_rejects_negative(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "time_minutes", "op": "lte", "value": -5}]})
 
     def test_list_field_requires_list_value(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "diet_tags", "op": "any", "value": "vegetarian"}]})
 
     def test_scalar_field_rejects_list_value(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
                 {"field": "cuisine", "op": "eq", "value": ["Indian"]}]})
 
     def test_empty_search_query_rejected(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "   ", "requirements": []})
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "   ", "requirements": []})
 
     def test_unknown_top_level_key_rejected(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x", "requirements": [], "limit": 5})
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [], "limit": 5})
 
     def test_missing_requirements_key_rejected(self):
         with pytest.raises(FilterSpecError):
-            parse_plan({"search_query": "x"})
+            parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x"})
+
+    def test_missing_intent_key_rejected(self):
+        with pytest.raises(FilterSpecError):
+            parse_plan({
+                "intent_reason": "recipe request",
+                "search_query": "x",
+                "requirements": [],
+            })
+
+    def test_non_recipe_plan_has_no_retrieval_payload(self):
+        plan = parse_plan({
+            "intent": "out_of_domain",
+            "intent_reason": "weather is unrelated to recipes",
+            "search_query": "",
+            "requirements": [],
+        })
+        assert plan.intent == "out_of_domain"
+        assert plan.search_query == ""
+
+    def test_non_recipe_plan_rejects_retrieval_payload(self):
+        with pytest.raises(FilterSpecError, match="non-recipe"):
+            parse_plan({
+                "intent": "safety",
+                "intent_reason": "asks for an allergy guarantee",
+                "search_query": "peanut-free recipe",
+                "requirements": [],
+            })
 
 
 class TestNormalization:
     def test_cuisine_normalized_and_validated_against_vocabulary(self):
-        plan = parse_plan({"search_query": "x", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
             {"field": "cuisine", "op": "eq", "value": "  ukrainian "}]})
         plan = normalize_plan(plan, {"cuisines": ["Ukrainian", "Indian"]})
         assert plan.requirements[0].value == "Ukrainian"
 
     def test_cuisine_outside_vocabulary_raises(self):
-        plan = parse_plan({"search_query": "x", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
             {"field": "cuisine", "op": "eq", "value": "Martian"}]})
         with pytest.raises(FilterSpecError, match="vocabulary"):
             normalize_plan(plan, {"cuisines": ["Ukrainian", "Indian"]})
 
     def test_diet_tags_normalized(self):
-        plan = parse_plan({"search_query": "x", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
             {"field": "diet_tags", "op": "any", "value": ["Vegetarian", "VEGAN"]}]})
         plan = normalize_plan(plan, {"diet_tags": ["vegetarian", "vegan"]})
         assert plan.requirements[0].value == ["vegetarian", "vegan"]
 
     def test_diet_tag_outside_vocabulary_raises(self):
-        plan = parse_plan({"search_query": "x", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
             {"field": "diet_tags", "op": "any", "value": ["carnivore"]}]})
         with pytest.raises(FilterSpecError, match="vocabulary"):
             normalize_plan(plan, {"diet_tags": ["vegetarian", "vegan"]})
 
     def test_unknown_vocabulary_fields_pass_through_untouched(self):
-        plan = parse_plan({"search_query": "x", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "x", "requirements": [
             {"field": "time_minutes", "op": "lte", "value": 30},
             {"field": "ingredients", "op": "contains", "value": "salt flakes"},
         ]})
@@ -140,6 +169,12 @@ class TestEvaluation:
         # normalized lists carry descriptive names; containment is substring-based
         r = Requirement("ingredients", "contains", "salt")
         assert evaluate_requirement(r, rec(ingredients=["sea salt flakes", "water"])) is True
+
+    def test_ingredients_not_contains_is_conservative(self):
+        r = Requirement("ingredients", "not_contains", "peanut")
+        assert evaluate_requirement(r, rec()) is True
+        assert evaluate_requirement(r, rec(ingredients=None)) is False
+        assert evaluate_requirement(r, rec(ingredients=["peanut butter"])) is False
 
     def test_cuisine_eq_exact_after_normalization(self):
         assert evaluate_requirement(Requirement("cuisine", "eq", "Ukrainian"), rec()) is True
@@ -188,7 +223,7 @@ class TestEvaluation:
 
 class TestFilterRecords:
     def test_and_combination(self):
-        plan = parse_plan({"search_query": "dinner", "requirements": [
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "dinner", "requirements": [
             {"field": "diet_tags", "op": "any", "value": ["vegetarian"]},
             {"field": "time_minutes", "op": "lte", "value": 30},
         ]})
@@ -202,6 +237,6 @@ class TestFilterRecords:
         assert [r["pageid"] for r in out] == [1]
 
     def test_no_requirements_returns_everything(self):
-        plan = parse_plan({"search_query": "soup", "requirements": []})
+        plan = parse_plan({"intent": "recipe", "intent_reason": "recipe request", "search_query": "soup", "requirements": []})
         records = [rec(pageid=i) for i in (3, 1, 2)]
         assert [r["pageid"] for r in filter_records(plan, records)] == [3, 1, 2]

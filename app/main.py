@@ -1,22 +1,21 @@
-"""Recipe Q&A Service — FastAPI application (SPEC §7).
-
-HTTP layer only: request validation, the §7.1 response envelope, and the
-§7.3 problem contract. The answering pipeline is injected via app.pipeline;
-until the AI stack (ADR-001/002) is wired, /ask returns an explicit 503
-dependency-unavailable problem — never a disguised answer or refusal.
-"""
+"""Recipe Q&A Service — FastAPI application (SPEC §7)."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import time
 import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
+from starlette.concurrency import run_in_threadpool
 
 from app import corpus_meta
 from app import pipeline as pipeline_reg
+from app.extract import PROMPT_VERSION as EXTRACT_PROMPT_VERSION
+from app.generate import PROMPT_VERSION as GENERATE_PROMPT_VERSION
 from app.errors import (
     Problem,
     dependency_unavailable,
@@ -38,6 +37,7 @@ if not logging.getLogger().handlers:
 MAX_QUESTION_CHARS = 1000          # §7.1
 MAX_BODY_BYTES = 64 * 1024         # §7.3: separately enforced body limit → 413
 REQUIRED_ACCEPT = "application/json"  # §7.1: client MUST send exactly this
+MAX_REQUEST_SECONDS = 120
 
 
 def create_app(build_pipeline: bool = True) -> FastAPI:
@@ -65,6 +65,10 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
                 f"this endpoint requires Accept: {REQUIRED_ACCEPT}"
             )
 
+        content_type = request.headers.get("content-type", "")
+        if content_type.split(";", 1)[0].strip().lower() != "application/json":
+            raise invalid_request("Content-Type must be application/json")
+
         raw = await request.body()
         if len(raw) > MAX_BODY_BYTES:
             raise payload_too_large("request body exceeds the size limit")
@@ -78,10 +82,29 @@ def create_app(build_pipeline: bool = True) -> FastAPI:
             raise dependency_unavailable("the answering pipeline is not available")
 
         request_id = uuid.uuid4().hex
+        started = time.perf_counter()
         try:
-            result = _validate_envelope(pipeline.answer(question, request_id))
+            raw_result = await asyncio.wait_for(
+                run_in_threadpool(pipeline.answer, question, request_id),
+                timeout=MAX_REQUEST_SECONDS,
+            )
+            result = _validate_envelope(raw_result)
         except PipelineUnavailable as exc:
-            raise dependency_unavailable(str(exc)) from exc
+            logger.warning(
+                "pipeline unavailable request_id=%s error_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            _log_request(request_id, 503, started)
+            raise dependency_unavailable("the answering pipeline is temporarily unavailable") from exc
+        except asyncio.TimeoutError as exc:
+            _log_request(request_id, 503, started)
+            raise dependency_unavailable("the answering request timed out") from exc
+        except Problem as exc:
+            _log_request(request_id, exc.status, started)
+            raise
+        _log_request(request_id, 200, started, refused=result.refused,
+                     refusal_reason=result.refusal_reason)
         return JSONResponse(result.model_dump())
 
     return app
@@ -109,6 +132,31 @@ def _parse_and_validate(raw: bytes) -> str:
     if not question.strip():
         raise invalid_request("question must be a non-empty string")
     return question.strip()
+
+
+def _log_request(
+    request_id: str,
+    status: int,
+    started: float,
+    refused: bool | None = None,
+    refusal_reason: str | None = None,
+) -> None:
+    """Emit a structured, payload-free completion event for operations."""
+    event: dict[str, object] = {
+        "event": "request_complete",
+        "request_id": request_id,
+        "endpoint": "/ask",
+        "status": status,
+        "latency_ms": round((time.perf_counter() - started) * 1000),
+        "corpus_version": corpus_meta.corpus_version(),
+        "model": "gpt-5.6-luna",
+        "prompt_version": f"{EXTRACT_PROMPT_VERSION}+{GENERATE_PROMPT_VERSION}",
+    }
+    if refused is not None:
+        event["refused"] = refused
+    if refusal_reason is not None:
+        event["refusal_reason"] = refusal_reason
+    logger.info("%s", json.dumps(event, sort_keys=True))
 
 
 def _validate_envelope(result: object) -> AskResponse:

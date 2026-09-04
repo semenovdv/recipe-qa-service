@@ -65,7 +65,12 @@ class TestStructuredOutputSchema:
     def test_query_plan_schema_is_strict_and_serializable(self):
         schema = QueryPlan.model_json_schema()
         assert schema["additionalProperties"] is False
-        assert set(schema["required"]) == {"search_query", "requirements"}
+        assert set(schema["required"]) == {
+            "intent", "intent_reason", "search_query", "requirements"
+        }
+        assert schema["properties"]["intent"]["enum"] == [
+            "recipe", "out_of_domain", "safety"
+        ]
         # must survive a JSON round-trip (what we hand to the API)
         json.dumps(schema)
 

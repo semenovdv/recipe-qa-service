@@ -14,9 +14,12 @@ does not justify one).
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from app.query_plan import QueryPlan
+
+DENSE_DISTANCE_MAX = 0.70  # cosine similarity >= 0.30; ADR-001 initial gate
 
 # Corpus-derived vocabularies for FilterSpec normalization (SQL side).
 VOCAB_QUERY = """
@@ -31,6 +34,8 @@ SELECT 'diet_tags', array_agg(DISTINCT t) FROM recipes, unnest(diet_tags) AS t
 _WHERE_TEMPLATES: dict[tuple[str, str], str] = {
     ("ingredients", "contains"): "EXISTS (SELECT 1 FROM unnest(ingredients) ing "
                                  "WHERE ing ILIKE %(req_{i})s)",
+    ("ingredients", "not_contains"): "NOT EXISTS (SELECT 1 FROM unnest(ingredients) ing "
+                                      "WHERE ing ILIKE %(req_{i})s)",
     ("cuisine", "eq"): "cuisine = %(req_{i})s",
     ("dish_type", "eq"): "dish_type = %(req_{i})s",
     ("diet_tags", "any"): "diet_tags && %(req_{i})s::text[]",
@@ -65,7 +70,7 @@ def plan_to_where(plan: QueryPlan) -> tuple[str, dict[str, Any]]:
         if isinstance(value, list):
             value = list(value)
         elif isinstance(value, str):
-            if req.op == "contains":
+            if req.op in {"contains", "not_contains"}:
                 value = f"%{value}%"
         params[f"req_{i}"] = value
     if not clauses:
@@ -81,11 +86,15 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
         "ROW_NUMBER() OVER (ORDER BY embedding <=> %(query_vec)s::vector)"
         if embed_query else "NULL"
     )
+    dense_distance = (
+        "embedding <=> %(query_vec)s::vector" if embed_query else "NULL::float"
+    )
     sql = f"""
     WITH filtered AS (
         SELECT pageid, title, source_url, time_minutes, servings,
                cuisine, dish_type, diet_tags, ingredients, source_text,
                embedding,
+               {dense_distance} AS dense_distance,
                ts_rank(search_tsv, websearch_to_tsquery('english', %(search_query)s))
                    AS fts_rank
         FROM recipes
@@ -99,15 +108,48 @@ def build_search_sql(plan: QueryPlan, embed_query: bool) -> str:
     )
     SELECT pageid, title, source_url, time_minutes, servings,
            cuisine, dish_type, diet_tags, ingredients, source_text,
+           fts_rank, dense_distance,
            COALESCE(
                0.6 / (60 + lex_rank) + 0.4 / (60 + vec_rank),
                1.0 / (60 + lex_rank)
            ) AS rrf_score
     FROM ranked
+    WHERE fts_rank > 0 OR dense_distance <= {DENSE_DISTANCE_MAX}
     ORDER BY rrf_score DESC, pageid ASC
     LIMIT %(limit)s
     """
     return sql
+
+
+def relevant_records(records: list[dict]) -> list[dict]:
+    """Keep only records that pass the documented relevance gate."""
+    return [
+        record for record in records
+        if (record.get("fts_rank") or 0) > 0
+        or (
+            record.get("dense_distance") is not None
+            and record["dense_distance"] <= DENSE_DISTANCE_MAX
+        )
+    ]
+
+
+_COMPARISON_RE = re.compile(
+    r"\b(?:compare|comparison|difference|differences|versus|vs\.?|alternatives)\b",
+    re.IGNORECASE,
+)
+
+
+def is_comparison_question(question: str) -> bool:
+    return bool(_COMPARISON_RE.search(question))
+
+
+def select_for_answer(question: str, records: list[dict]) -> list[dict]:
+    """Apply the stable single-recipe policy after relevance filtering."""
+    if is_comparison_question(question):
+        return records
+    if not records:
+        return []
+    return [min(records, key=lambda record: record["pageid"])]
 
 
 def plan_to_params(

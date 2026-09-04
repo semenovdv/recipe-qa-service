@@ -30,10 +30,12 @@ def embedding_text(record: dict) -> str:
 
 
 def search_text(record: dict) -> str:
-    """Text fed to Postgres FTS (title + ingredients; ADR-003 D1)."""
+    """Text fed to Postgres FTS (title + normalized metadata)."""
     parts = [
         record.get("title") or "",
         " ".join(record.get("ingredients_normalized") or []),
+        record.get("cuisine") or "",
+        record.get("dish_type") or "",
     ]
     return " ".join(p for p in parts if p).strip()
 
