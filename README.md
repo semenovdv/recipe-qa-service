@@ -79,7 +79,15 @@ actually chosen and the results of their runs.
 
 ## Deployment, cost and latency
 
-The local Docker workflow is verified; a production provider and URLs are not yet selected. The current runtime uses `gpt-5.6-luna` for query planning and
+The review deployment runs on Northflank. Public URLs:
+
+- UI: `https://p01--recipe-qa-ui--yjw6rjx4dx4m.code.run`
+- API: `https://p01--recipe-qa-service--yjw6rjx4dx4m.code.run`
+- API health: `https://p01--recipe-qa-service--yjw6rjx4dx4m.code.run/health`
+
+Northflank project access is the selected container-level verification method:
+the reviewer can inspect service status, deployments, logs and metrics in the
+`recipe-qa-service` project. The current runtime uses `gpt-5.6-luna` for query planning and
 answer generation, plus `text-embedding-3-small` for recipe and query vectors. The
 dominant latency is the two LLM calls; the next optimization is request-level metrics
 and golden-eval measurement before changing model tiers.
