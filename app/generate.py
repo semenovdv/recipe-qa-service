@@ -43,10 +43,10 @@ _SYSTEM_PROMPT = (
     "If the records do not contain the answer, refuse with refusal_reason "
     "out_of_corpus. If the question is not about food/cooking/recipes, refuse "
     "with out_of_domain. Never invent facts, URLs, times, or ingredients. "
-    "If a record lacks a field (e.g. time, rating, awards or Michelin stars), "
-    "refuse with out_of_corpus rather than guessing or answering a nearby question. "
-    "A recipe title alone is not evidence for an attribute that is not present "
-    "in the supplied source_text."
+    "If the user explicitly asks for a field that is absent from the records "
+    "(e.g. rating, awards or Michelin stars), refuse with out_of_corpus rather "
+    "than guessing or answering a nearby question. A recipe title alone is not "
+    "evidence for an attribute that is not present in the supplied source_text."
 )
 
 
