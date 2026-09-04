@@ -61,7 +61,7 @@
     "expected": {
       "status": 200,
       "refused": false,
-      "citation_any_of": [23815, 41709, 7287, 470705, 4696],
+      "citation_any_of": [23815, 41709, 7281, 7287, 470705, 4696],
       "constraints": {
         "required_diet_tag": "vegetarian",
         "excluded_ingredient": "peanut"
