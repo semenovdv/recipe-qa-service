@@ -50,7 +50,9 @@ The response is a single strict-schema object:
 
 Code-side enforcement (mirrors the enrichment guards that already proved themselves):
 
-- `kind="answer"` with zero valid citations → converted to `out_of_corpus` refusal.
+- `kind="answer"` with zero valid citations → retried once, then returned as an
+  operational HTTP 503 if evidence still fails; the second model never creates
+  a business refusal.
 - Every citation's `quote` must be a verbatim substring of that pageid's gated
   `source_text`; otherwise the citation is dropped; answer with no surviving
   citations → `out_of_corpus` refusal.
@@ -78,7 +80,7 @@ Code-side enforcement (mirrors the enrichment guards that already proved themsel
 | Non-recipe / off-domain question | `out_of_domain` | LLM-classified intent in QueryPlan; no retrieval or generation |
 | Safety-sensitive question | `safety` | LLM-classified intent in QueryPlan; no retrieval or generation |
 | Recipe-domain but no candidate passes hard filters | `out_of_corpus` | Refuse rather than relax constraints |
-| Candidates exist but evidence/citations fail | `out_of_corpus` | Evidence gate refuses rather than guessing |
+| Candidates exist but evidence/citations fail | HTTP `503` | Evidence gate fails closed rather than letting the second model create a refusal |
 | Extraction/schema/infra failure, retries exhausted | HTTP 503 problem | Operational failure is never a business refusal |
 
 Safety-refusal questions (§4.x safety precedence) map to `safety` and never reach

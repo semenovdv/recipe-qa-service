@@ -134,22 +134,19 @@ class TestEvidenceGate:
         result = generate("q", RECORDS, client=FakeClient([out]))
         assert "⟦" not in result.answer
 
-    def test_fabricated_quote_dropped_and_answer_demoted_to_refusal(self):
+    def test_fabricated_quote_dropped_and_second_model_failure_is_operational(self):
         bad = model_output(
             citations=[{"pageid": 101, "quote": "Borscht was invented in 1832."}]
         )
         client = FakeClient([bad, bad])
-        out = generate("q", RECORDS, client=client)
+        with pytest.raises(GenerationError):
+            generate("q", RECORDS, client=client)
         assert len(client.chat.completions.calls) == 2
-        assert out.refused is True
-        assert out.refusal_reason == "out_of_corpus"
-        assert out.citations == []
-        assert out.answer  # polite non-empty refusal text
 
     def test_unknown_pageid_dropped(self):
         bad = model_output(citations=[{"pageid": 999, "quote": "anything"}])
-        out = generate("q", RECORDS, client=FakeClient([bad, bad]))
-        assert out.refused is True and out.refusal_reason == "out_of_corpus"
+        with pytest.raises(GenerationError):
+            generate("q", RECORDS, client=FakeClient([bad, bad]))
 
     def test_one_bad_citation_keeps_the_valid_one(self):
         mixed = model_output(

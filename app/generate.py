@@ -4,8 +4,8 @@
 Code enforces the evidence gate: every citation quote must appear verbatim
 (whitespace-collapsed) in the cited record's ``source_text``; unknown
 pageids are dropped. An answer left without valid citations is retried
-once and then demoted to an honest ``out_of_corpus`` refusal — the model
-never gets the last word on its own evidence.
+    once and then raises ``GenerationError`` for HTTP 503 — a failed second
+    model response is never converted into a business refusal.
 
 Failure mapping (§7.3): malformed model outputs or invalid refusal reasons
 are retried once, then ``GenerationError`` — upstream converts it to the
@@ -191,7 +191,7 @@ def _to_response(
         if _ws(c.quote) in source:
             kept.append(c)
     if not kept:
-        return "demote"  # answer without evidence -> retry, then refusal
+        return "demote"  # answer without evidence -> retry, then 503
 
     ordered = _citation_order(out.answer, kept)
     seen: set[int] = set()
@@ -236,7 +236,6 @@ def generate(
         client = OpenAI(api_key=settings.openai_api_key or None)
 
     error_hint: str | None = None
-    demote = False
     for _ in range(MAX_ATTEMPTS):
         try:
             response = client.chat.completions.parse(
@@ -252,7 +251,6 @@ def generate(
 
         result = _to_response(out, records, inline_links=inline_links)
         if result == "demote":
-            demote = True
             error_hint = "no citation survived the verbatim evidence check"
             continue
         if result is None:
@@ -260,15 +258,4 @@ def generate(
             continue
         return result
 
-    if demote:
-        # Evidence gate, final answer: honest refusal instead of unsupported
-        # claims (SPEC §7.3 — must not misrepresent failure as confidence).
-        return AskResponse(
-            answer="I could not verify an answer against the recipe sources "
-            "for this question, so I won't guess. Try rephrasing or "
-            "asking about a recipe that exists in the cookbook.",
-            citations=[],
-            refused=True,
-            refusal_reason="out_of_corpus",
-        )
     raise GenerationError("generation failed after retries with invalid outputs")
