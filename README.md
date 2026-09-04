@@ -2,7 +2,9 @@
 
 ## Status
 
-The backend, Docker Compose workflow, streamed UI and golden evaluation are implemented and verified locally. Public deployment and managed production database remain the final external step.
+The backend, Docker Compose workflow, streamed UI, golden evaluation and public
+Northflank deployment are implemented. API, UI and PostgreSQL are running in the
+review project; the database is seeded idempotently at API container startup.
 The root
 [`SPEC.md`](SPEC.md) is the canonical entry point, and the normative text is
 kept in [`docs/03_SPEC.md`](docs/03_SPEC.md), without a second copy.
@@ -92,14 +94,35 @@ answer generation, plus `text-embedding-3-small` for recipe and query vectors. T
 dominant latency is the two LLM calls; the next optimization is request-level metrics
 and golden-eval measurement before changing model tiers.
 
+### Automation and operational access
+
+GitHub Actions runs on every pull request and push. Pull requests must pass tests,
+format/lint, static checks, dependency and secret scans, and both Docker builds.
+Northflank services `recipe-qa-service` and `recipe-qa-ui` track `main` with CD set
+to `Always deploying`, so a merge or direct commit to `main` automatically rebuilds
+and deploys both services. PostgreSQL is the persistent Northflank addon
+`recipe-qa-db`; the API bootstrap runs the idempotent seeder before Uvicorn.
+
+For reviewer access, invite the reviewer in Northflank under **Team → Members**
+with the **Viewer/read-only** role. This exposes service status, deployments,
+container logs and metrics without exposing secrets.
+
+### Cost estimate
+
+Using the current regular API rates ($0.20 / 1M input tokens and $1.20 / 1M output
+tokens for GPT-5.6 Luna; $0.02 / 1M input tokens for text-embedding-3-small), a
+representative request budget of approximately 13.8k input tokens, 650 output
+tokens and 1k embedding tokens costs about **$0.0036 per question**, or **$3.60
+per 1,000 questions**. This excludes fixed hosting and assumes no retry. A full
+retry can approximately double the variable amount.
+
 ### Easiest low-cost deployment
 
 For a review deployment, use Northflank (or an equivalent Docker PaaS) with one Postgres+pgvector service, one API service built from the root `Dockerfile`, one UI service built from `ui/Dockerfile`, and a one-shot seed job using `python -m scripts.db_seed --apply`. Set `OPENAI_API_KEY` and `DATABASE_URL` as platform secrets, wait for `/health`, then open the UI service URL. Free tiers and database persistence limits change, so confirm the provider's current allowance before choosing it; never put the API key in Git.
 
 For an actually free small demo, use a free Docker web service plus a free Postgres provider that supports `pgvector`; this is usually more manual and may sleep or have storage limits.
 
-Production still requires a managed PostgreSQL+pgvector instance, platform-injected
-`DATABASE_URL` and `OPENAI_API_KEY`, a public API/UI deployment, backups, and CI/CD.
+Production still requires backups to be enabled in the Northflank PostgreSQL addon.
 No production credentials are stored in the repository. The API logs structured
 request ID, status, latency, corpus version, model, prompt version, and refusal state
 to container stdout so a bad answer can be traced through its plan, retrieval IDs, and
