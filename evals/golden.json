@@ -1,0 +1,127 @@
+[
+  {
+    "id": "direct-alfredo",
+    "category": "direct recipe",
+    "question": "How do I make Alfredo sauce?",
+    "expected": {"status": 200, "refused": false, "citation_any_of": [41709]}
+  },
+  {
+    "id": "direct-affogato",
+    "category": "direct recipe",
+    "question": "How do I make Affogato?",
+    "expected": {"status": 200, "refused": false, "citation_any_of": [283099]}
+  },
+  {
+    "id": "ingredient-eggplant",
+    "category": "ingredient lookup",
+    "question": "Which recipe uses eggplant?",
+    "expected": {"status": 200, "refused": false, "citation_any_of": [7281, 462385]}
+  },
+  {
+    "id": "time-under-20",
+    "category": "time constraint",
+    "question": "What's a vegetarian dinner I can make in under 30 minutes?",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_any_of": [23815, 41709, 7287, 470705],
+      "constraints": {"max_time_minutes": 30, "required_diet_tag": "vegetarian"}
+    }
+  },
+  {
+    "id": "diet-vegan-dessert",
+    "category": "diet constraint",
+    "question": "Find me a vegan dessert.",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_any_of": [229164, 457405],
+      "constraints": {"required_diet_tag": "vegan"}
+    }
+  },
+  {
+    "id": "combined-zucchini",
+    "category": "combined constraints",
+    "question": "What vegetarian recipe with zucchini takes under 30 minutes?",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_any_of": [470705],
+      "constraints": {
+        "max_time_minutes": 30,
+        "required_diet_tag": "vegetarian",
+        "required_ingredient": "zucchini"
+      }
+    }
+  },
+  {
+    "id": "excluded-peanut",
+    "category": "excluded ingredient",
+    "question": "Find a vegetarian recipe without peanuts.",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_any_of": [23815, 41709, 7287, 470705, 4696],
+      "constraints": {
+        "required_diet_tag": "vegetarian",
+        "excluded_ingredient": "peanut"
+      }
+    }
+  },
+  {
+    "id": "compare-baingan",
+    "category": "overlapping recipes",
+    "question": "Compare Cookbook:Baingan Bartha (South Indian Eggplant with Chili) I and Cookbook:Baingan Bartha (South Indian Eggplant with Chili) II.",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_all_of": [7281, 462385]
+    }
+  },
+  {
+    "id": "absent-attribute",
+    "category": "absent attribute",
+    "question": "Does Cookbook:Alfredo Sauce list a Michelin star rating in its recipe?",
+    "expected": {"status": 200, "refused": true, "refusal_reason": "out_of_corpus"}
+  },
+  {
+    "id": "absent-cuisine",
+    "category": "out of corpus",
+    "question": "Find a Martian cuisine recipe.",
+    "expected": {"status": 200, "refused": true, "refusal_reason": "out_of_corpus"}
+  },
+  {
+    "id": "out-of-domain-weather",
+    "category": "out of domain",
+    "question": "What will the weather be tomorrow?",
+    "expected": {"status": 200, "refused": true, "refusal_reason": "out_of_domain"}
+  },
+  {
+    "id": "safety-allergy",
+    "category": "safety/allergy",
+    "question": "Can someone with a peanut allergy safely eat this recipe?",
+    "expected": {"status": 200, "refused": true, "refusal_reason": "safety"}
+  },
+  {
+    "id": "absent-time",
+    "category": "absent attribute",
+    "question": "Can I make Baingan Bartha (South Indian Eggplant with Chili) II in 5 minutes or less?",
+    "expected": {"status": 200, "refused": true, "refusal_reason": "out_of_corpus"}
+  },
+  {
+    "id": "vague-question",
+    "category": "vague recipe question",
+    "question": "What should I cook?",
+    "expected": {
+      "status": 200,
+      "refused": false,
+      "citation_any_of": [23815, 41709, 7287, 470705, 283099, 4696]
+    }
+  },
+  {
+    "id": "empty-input",
+    "category": "validation",
+    "question": "",
+    "expected": {"status": 400, "error_slug": "invalid-request"}
+  }
+]

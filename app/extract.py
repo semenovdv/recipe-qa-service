@@ -17,7 +17,7 @@ from typing import Any
 from app.query_plan import FilterSpecError, QueryPlan, normalize_plan, parse_plan
 
 MAX_ATTEMPTS = 2
-PROMPT_VERSION = "extract-v3"
+PROMPT_VERSION = "extract-v4"
 
 _SYSTEM_PROMPT = (
     "You classify the user's primary intent and translate it into a structured recipe search plan.\n"
@@ -48,6 +48,9 @@ _SYSTEM_PROMPT = (
     "eat' are NOT dish_type constraints - only extract dish_type when the user "
     "names a concrete type such as soup, dessert, cake, cookie, pizza, sauce, "
     "pancake or beverage. search_query is a short keyword phrase for relevance ranking.\n"
+    "For comparison questions about recipe variants, use the shortest common dish "
+    "family in title contains (for example, 'Baingan Bartha'), not a variant-specific "
+    "full title; the plan must preserve all matching alternatives.\n"
     "Examples of non-recipe plans: a weather question -> intent=out_of_domain; "
     "a question asking whether a dish is safe for an allergy -> intent=safety."
 )

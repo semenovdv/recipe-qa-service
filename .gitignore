@@ -6,6 +6,7 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+evals/report.json
 
 # Ingestion raw cache (build artifact, not part of the deliverable)
 dataset/raw/
