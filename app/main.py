@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
+from starlette.middleware.cors import CORSMiddleware
 
 from app import corpus_meta
 from app import pipeline as pipeline_reg
@@ -42,6 +43,16 @@ MAX_REQUEST_SECONDS = 120
 
 def create_app(build_pipeline: bool = True) -> FastAPI:
     app = FastAPI(title="Recipe Q&A Service", version="0.1.0")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "https://p01--recipe-qa-ui--yjw6rjx4dx4m.code.run",
+        ],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Accept", "Content-Type"],
+    )
     _register_error_handlers(app)
     if build_pipeline:
         from app.pipeline import build_default_pipeline, set_pipeline
